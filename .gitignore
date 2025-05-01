@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+
+# Logs
+vault.log
+*.log
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+
+# Test / coverage
+.coverage
+htmlcov/
+.tox/
+.cache/
+
+# Cursor-specific
+cursor-notes.md
+.cursorrules
+.cursor/rules/rules.mdc
