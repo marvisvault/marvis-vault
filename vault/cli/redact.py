@@ -5,6 +5,7 @@ import typer
 from rich.console import Console
 from rich.prompt import Confirm
 from ..engine.policy_engine import evaluate
+import re
 
 app = typer.Typer()
 console = Console()
