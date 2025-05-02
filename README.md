@@ -111,7 +111,7 @@ Check out the [roadmap](https://docs.marvisvault.com/roadmap) and open issues �
 
 ## 🧠 About
 
-**Marvis Vault** is built by [@abhigyanbiswas](https://www.linkedin.com/in/abhigyanbiswas/) to bring programmable trust to the age of agentic AI.
+**Marvis Vault** is built by [@abhigyanbiswas](https://www.linkedin.com/in/abhigyan-biswas/) to bring programmable trust to the age of agentic AI.
 
 Built in public. OSS first.  
 Try it → [marvisvault.com](https://marvisvault.com)
