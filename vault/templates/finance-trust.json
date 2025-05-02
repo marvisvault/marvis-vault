@@ -1,0 +1,8 @@
+{
+  "mask": ["bankAccount", "transactionHistory", "creditScore"],
+  "unmaskRoles": ["admin", "financial_advisor"],
+  "conditions": [
+    "trustScore > 95 && role != 'auditor'",
+    "trustScore > 90 && role == 'financial_advisor'"
+  ]
+} 
