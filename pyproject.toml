@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "marvis-vault"
+version = "0.1.0"
+description = "Programmable compliance SDK for redaction, audit, and policy-based masking in agentic AI workflows"
+authors = [
+  { name = "Abhigyan Biswas", email = "abhigyanbiswas1@gmail.com" },
+  { name = "Marvis Vault", email = "founder@marvisvault.com" }
+]
+
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.9.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "rich>=13.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.0.0",
+    "mypy>=1.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/marvis-labs/marvis-vault-oss"
+Documentation = "https://marvis-labs.github.io/marvis-vault-oss"
+Repository = "https://github.com/marvis-labs/marvis-vault-oss.git"
+
+[tool.setuptools]
+package-dir = {"" = "vault"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=vault --cov-report=term-missing" 
