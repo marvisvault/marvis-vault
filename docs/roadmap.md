@@ -135,12 +135,21 @@ We welcome contributions to Marvis Vault OSS:
 ## Getting Help
 
 - **Documentation**: [docs.marvisvault.com](https://docs.marvisvault.com)
-- **GitHub**: [github.com/marvis-labs/marvis-vault-oss](https://github.com/marvis-labs/marvis-vault-oss)
-- **Discord**: [discord.gg/marvisvault](https://discord.gg/marvisvault)
-- **Email**: support@marvisvault.com
+- **GitHub**: [github.com/marvis-labs/marvis-vault-oss](https://github.com/abbybiswas/marvis-vault-oss)
+- **Email**: founder@marvisvault.com
 
 ## Next Steps
 
 - Try the [Quickstart Guide](quickstart.md)
 - Learn about [Policy Format](policy-format.md)
 - Explore [SDK Usage](sdk-usage.md) 
+
+---
+
+## 💡 Suggest a Feature
+
+Have an idea or use case you'd like to see in Marvis Vault?
+
+👉 [Open a GitHub Issue](https://github.com/abbybiswas/marvis-vault-oss/issues/new?template=feature_request.md&title=[proposal]+)
+
+We review all proposals and roadmap-aligned ideas regularly.
