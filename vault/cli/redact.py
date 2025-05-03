@@ -1,3 +1,7 @@
+"""
+Redact command for masking sensitive data.
+"""
+
 import sys
 from pathlib import Path
 from typing import Optional, TextIO
@@ -93,7 +97,6 @@ def redact(
         input_text = read_input(input)
         
         # Create context from input text
-        # This is a simple implementation - can be enhanced based on requirements
         context = {}
         for line in input_text.splitlines():
             if ":" in line:
@@ -101,14 +104,10 @@ def redact(
                 context[key.strip()] = value.strip()
         
         # Evaluate policy
-        result = evaluate(context, policy)
-        
-        if not result.status:
-            console.print(f"[red]Policy evaluation failed: {result.reason}[/red]")
-            sys.exit(1)
+        result = evaluate(context, str(policy))
         
         # Apply redaction
-        redacted_text = redact_text(input_text, result.fields_to_mask)
+        redacted_text = redact_text(input_text, result.fields)
         
         # Write output
         write_output(redacted_text, output, force)

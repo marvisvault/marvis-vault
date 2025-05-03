@@ -1,0 +1,9 @@
+User Information:
+name: Alice Smith
+email: 
+ssn: 
+dob: null
+phone: 
+role: user
+trustScore: null
+department: HR 

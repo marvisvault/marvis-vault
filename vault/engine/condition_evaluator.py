@@ -33,7 +33,11 @@ def _validate_numeric(value: Any, field_name: str) -> float:
     if value is None:
         raise ValueError(f"Field '{field_name}' cannot be null")
     try:
-        return float(value)
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str) and value.strip():
+            return float(value.strip())
+        raise ValueError(f"Field '{field_name}' must be numeric")
     except (TypeError, ValueError):
         raise ValueError(f"Field '{field_name}' must be numeric, got {type(value)}")
 
@@ -163,10 +167,11 @@ def _evaluate_expression(tokens: List[Token], context: Dict[str, Any]) -> Tuple[
             
         # Validate numeric comparisons
         if op in [Operator.GREATER_THAN, Operator.LESS_THAN]:
-            if isinstance(left, str) or isinstance(right, str):
-                raise ValueError(f"Cannot compare non-numeric values: {left} and {right}")
-            left = _validate_numeric(left, tokens[0].value)
-            right = _validate_numeric(right, tokens[2].value)
+            try:
+                left = _validate_numeric(left, tokens[0].value)
+                right = _validate_numeric(right, tokens[2].value)
+            except ValueError as e:
+                raise ValueError(f"Invalid comparison: {str(e)}")
             
         # Perform comparison
         if op == Operator.EQUALS:

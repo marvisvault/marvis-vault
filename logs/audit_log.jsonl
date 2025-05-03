@@ -1,0 +1,10 @@
+{"timestamp": "2024-03-03T10:00:00Z", "action": "redact", "field": "ssn", "result": "success", "role": "admin", "input": "123-45-6789", "output": "[REDACTED]"}
+{"timestamp": "2024-03-03T10:01:00Z", "action": "redact", "field": "email", "result": "success", "role": "vendor", "input": "john@example.com", "output": "[REDACTED]"}
+{"timestamp": "2024-03-03T10:02:00Z", "action": "unmask", "field": "phone", "result": "success", "role": "admin", "input": "[REDACTED]", "output": "+1-555-123-4567"}
+{"timestamp": "2024-03-03T10:03:00Z", "action": "redact", "field": "dob", "result": "success", "role": "vendor", "input": "1990-01-01", "output": "[REDACTED]"}
+{"timestamp": "2024-03-03T10:04:00Z", "action": "audit", "field": "all", "result": "success", "role": "admin", "input": "full_audit", "output": "audit_report.json"}
+{"timestamp": "2024-03-03T10:05:00Z", "action": "redact", "field": "name", "result": "success", "role": "vendor", "input": "John Doe", "output": "[REDACTED]"}
+{"timestamp": "2024-03-03T10:06:00Z", "action": "unmask", "field": "email", "result": "success", "role": "admin", "input": "[REDACTED]", "output": "john@example.com"}
+{"timestamp": "2024-03-03T10:07:00Z", "action": "redact", "field": "phone", "result": "success", "role": "vendor", "input": "+1-555-123-4567", "output": "[REDACTED]"}
+{"timestamp": "2024-03-03T10:08:00Z", "action": "unmask", "field": "ssn", "result": "success", "role": "admin", "input": "[REDACTED]", "output": "123-45-6789"}
+{"timestamp": "2024-03-03T10:09:00Z", "action": "audit", "field": "all", "result": "success", "role": "vendor", "input": "full_audit", "output": "audit_report.json"} 

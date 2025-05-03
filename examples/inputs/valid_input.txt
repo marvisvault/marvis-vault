@@ -1,0 +1,9 @@
+User Information:
+name: John Doe
+email: john.doe@example.com
+ssn: 123-45-6789
+dob: 1990-01-01
+phone: +1-555-123-4567
+role: admin
+trustScore: 85
+department: IT 

@@ -1,0 +1,9 @@
+User Information:
+name: Bob Wilson
+email: not-an-email
+ssn: invalid-ssn
+dob: not-a-date
+phone: invalid-phone
+role: admin
+trustScore: eighty
+department: IT 
