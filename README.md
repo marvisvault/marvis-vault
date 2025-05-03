@@ -4,18 +4,18 @@
 
 ---
 
-# 🛡️ Marvis Vault OSS
+# Marvis Vault OSS
 
 **Programmable compliance infrastructure for agentic AI.**  
 Redact, simulate, and audit sensitive data — with policies, trustScore, and role-based logic.  
 
 Built for teams using LLMs, agents, and AI-native workflows.
 
-[🧭 Read the Docs](https://docs.marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🌐 marvisvault.com](https://marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🚀 Apply for Vault Plus](https://tally.so/r/3XNBgP)
+[ Read the Docs](https://docs.marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🌐 marvisvault.com](https://marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🚀 Apply for Vault Plus](https://tally.so/r/3XNBgP)
 
 ---
 
-## ⚙️ Core Features
+## Core Features
 
 - 🔒 **Redaction Engine** — Mask sensitive fields using role + trustScore
 - 🧠 **Policy Language** — Declarative conditions with `&&`, `||`, and field logic

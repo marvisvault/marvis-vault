@@ -35,8 +35,12 @@ Homepage = "https://github.com/marvis-labs/marvis-vault-oss"
 Documentation = "https://marvis-labs.github.io/marvis-vault-oss"
 Repository = "https://github.com/marvis-labs/marvis-vault-oss.git"
 
+[project.scripts]
+vault = "vault.cli.main:app"
+
 [tool.setuptools]
-package-dir = {"" = "vault"}
+packages = ["vault"]
+package-data = {"vault": ["templates/*.json", "templates/*.yaml"]}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
