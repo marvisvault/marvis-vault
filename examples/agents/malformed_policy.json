@@ -1,0 +1,5 @@
+{
+    "mask": ["ssn", "dob"],
+    "unmaskRoles": ["admin"],
+    "conditions": ["trustScore >> 80"]
+} 

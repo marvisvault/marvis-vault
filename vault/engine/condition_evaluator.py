@@ -1,4 +1,8 @@
-from typing import Dict, Tuple, Any
+"""
+Condition evaluator for policy engine.
+"""
+
+from typing import Dict, Tuple, Any, List, Optional
 import re
 from enum import Enum, auto
 
@@ -15,6 +19,7 @@ class TokenType(Enum):
     """Types of tokens in the condition string."""
     OPERATOR = auto()
     VALUE = auto()
+    LITERAL = auto()
     PAREN = auto()
 
 class Token:
@@ -22,6 +27,15 @@ class Token:
     def __init__(self, type: TokenType, value: Any):
         self.type = type
         self.value = value
+
+def _validate_numeric(value: Any, field_name: str) -> float:
+    """Validate that a value is numeric and convert to float."""
+    if value is None:
+        raise ValueError(f"Field '{field_name}' cannot be null")
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"Field '{field_name}' must be numeric, got {type(value)}")
 
 def _tokenize(condition: str) -> list[Token]:
     """Convert condition string into a list of tokens."""
@@ -81,7 +95,7 @@ def _tokenize(condition: str) -> list[Token]:
                 tokens.append(Token(TokenType.VALUE, float(match.group())))
                 i += len(match.group())
             elif char == "'" or char == '"':
-                # Match string
+                # Match string literal
                 quote = char
                 i += 1
                 start = i
@@ -89,24 +103,45 @@ def _tokenize(condition: str) -> list[Token]:
                     i += 1
                 if i >= len(condition):
                     raise ValueError(f"Unclosed string at position {start-1}")
-                tokens.append(Token(TokenType.VALUE, condition[start:i]))
+                tokens.append(Token(TokenType.LITERAL, condition[start:i]))
                 i += 1
             else:
                 raise ValueError(f"Unexpected character at position {i}")
                 
     return tokens
 
-def _evaluate_expression(tokens: list[Token], context: Dict[str, Any]) -> Tuple[bool, str]:
+def _find_matching_paren(tokens: List[Token], start: int) -> int:
+    """Find the matching closing parenthesis."""
+    count = 1
+    i = start + 1
+    while i < len(tokens):
+        if tokens[i].type == TokenType.PAREN:
+            if tokens[i].value == '(':
+                count += 1
+            elif tokens[i].value == ')':
+                count -= 1
+                if count == 0:
+                    return i
+        i += 1
+    raise ValueError("Unmatched parenthesis")
+
+def _evaluate_expression(tokens: List[Token], context: Dict[str, Any]) -> Tuple[bool, str]:
     """Evaluate a list of tokens using the provided context."""
     if not tokens:
         return True, "Empty condition"
         
+    # Handle parentheses
+    if tokens[0].type == TokenType.PAREN and tokens[0].value == '(':
+        end = _find_matching_paren(tokens, 0)
+        if end == len(tokens) - 1:
+            return _evaluate_expression(tokens[1:end], context)
+            
     # Handle single value
     if len(tokens) == 1:
-        if tokens[0].type != TokenType.VALUE:
+        if tokens[0].type not in [TokenType.VALUE, TokenType.LITERAL]:
             raise ValueError("Invalid expression")
         value = tokens[0].value
-        if isinstance(value, str) and value in context:
+        if tokens[0].type == TokenType.VALUE and isinstance(value, str) and value in context:
             return bool(context[value]), f"Context value '{value}' is {bool(context[value])}"
         return bool(value), f"Value {value} is {bool(value)}"
         
@@ -116,17 +151,22 @@ def _evaluate_expression(tokens: list[Token], context: Dict[str, Any]) -> Tuple[
         op = tokens[1].value
         right = tokens[2].value
         
-        # Get left value from context if it's a string
-        if isinstance(left, str) and left in context:
+        # Get left value from context if it's a context variable
+        if tokens[0].type == TokenType.VALUE and isinstance(left, str) and left in context:
             left = context[left]
-        elif isinstance(left, str):
+        elif tokens[0].type == TokenType.VALUE and isinstance(left, str):
             raise ValueError(f"Context key '{left}' not found")
             
-        # Get right value from context if it's a string
-        if isinstance(right, str) and right in context:
+        # Get right value from context if it's a context variable
+        if tokens[2].type == TokenType.VALUE and isinstance(right, str) and right in context:
             right = context[right]
-        elif isinstance(right, str):
-            raise ValueError(f"Context key '{right}' not found")
+            
+        # Validate numeric comparisons
+        if op in [Operator.GREATER_THAN, Operator.LESS_THAN]:
+            if isinstance(left, str) or isinstance(right, str):
+                raise ValueError(f"Cannot compare non-numeric values: {left} and {right}")
+            left = _validate_numeric(left, tokens[0].value)
+            right = _validate_numeric(right, tokens[2].value)
             
         # Perform comparison
         if op == Operator.EQUALS:
@@ -143,17 +183,18 @@ def _evaluate_expression(tokens: list[Token], context: Dict[str, Any]) -> Tuple[
             return result, f"{left} < {right} is {result}"
             
     # Handle AND/OR operations
-    if len(tokens) >= 3 and tokens[1].type == TokenType.OPERATOR and tokens[1].value in [Operator.AND, Operator.OR]:
-        left_result, left_explanation = _evaluate_expression([tokens[0]], context)
-        right_result, right_explanation = _evaluate_expression(tokens[2:], context)
-        
-        if tokens[1].value == Operator.AND:
-            result = left_result and right_result
-            return result, f"({left_explanation}) AND ({right_explanation}) is {result}"
-        else:  # OR
-            result = left_result or right_result
-            return result, f"({left_explanation}) OR ({right_explanation}) is {result}"
+    for i in range(len(tokens)):
+        if tokens[i].type == TokenType.OPERATOR and tokens[i].value in [Operator.AND, Operator.OR]:
+            left_result, left_explanation = _evaluate_expression(tokens[:i], context)
+            right_result, right_explanation = _evaluate_expression(tokens[i+1:], context)
             
+            if tokens[i].value == Operator.AND:
+                result = left_result and right_result
+                return result, f"({left_explanation}) AND ({right_explanation}) is {result}"
+            else:  # OR
+                result = left_result or right_result
+                return result, f"({left_explanation}) OR ({right_explanation}) is {result}"
+                
     raise ValueError("Invalid expression structure")
 
 def evaluate_condition(condition: str, context: Dict[str, Any]) -> Tuple[bool, str]:

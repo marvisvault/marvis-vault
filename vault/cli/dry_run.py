@@ -1,15 +1,18 @@
+"""
+Dry run command for testing policy evaluation.
+"""
+
 import sys
 from pathlib import Path
-from typing import Optional, TextIO
+from typing import Optional, Set
 import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.syntax import Syntax
-from rich import print as rprint
 
 from vault.engine.policy_parser import load_policy
-from vault.engine.policy_engine import evaluate_policy
+from vault.engine.policy_engine import evaluate
 
 app = typer.Typer()
 console = Console()
@@ -29,7 +32,7 @@ def read_input(input_path: Optional[Path] = None) -> tuple[str, bool]:
     else:
         return sys.stdin.read(), False
 
-def format_masking_summary(fields_to_mask: set[str]) -> str:
+def format_masking_summary(fields_to_mask: Set[str]) -> str:
     """Format the summary of fields to be masked."""
     if not fields_to_mask:
         return "No fields would be masked"
@@ -43,7 +46,7 @@ def format_masking_summary(fields_to_mask: set[str]) -> str:
     
     return str(table)
 
-def format_masked_preview(text: str, fields_to_mask: set[str]) -> str:
+def format_masked_preview(text: str, fields_to_mask: Set[str]) -> str:
     """Format a preview of the masked text."""
     if not fields_to_mask:
         return text
@@ -53,7 +56,7 @@ def format_masked_preview(text: str, fields_to_mask: set[str]) -> str:
     for field in fields_to_mask:
         # This is a simple placeholder - in a real implementation,
         # you'd want to use proper field detection/regex
-        preview = preview.replace(field, f"[MASKED {field}]")
+        preview = preview.replace(field, "[MASKED]")
     
     return preview
 
@@ -91,17 +94,27 @@ def dry_run(
     Shows which fields would be masked without actually modifying the input.
     """
     try:
-        # Load policy
-        policy_data = load_policy(policy)
-        
         # Read input
         input_text, is_file = read_input(input)
         
+        # Create context
+        context = {
+            "text": input_text,
+            "role": "user",  # Default role
+            "trustScore": 50  # Default trust score
+        }
+        
         # Evaluate policy
-        result = evaluate_policy(policy_data, {"text": input_text})
-        fields_to_mask = result.get("fields_to_mask", set())
+        result = evaluate(context, str(policy))
+        fields_to_mask = set(result.fields) if not result.success else set()
         
         # Output results
+        console.print("\n[bold]Policy Evaluation:[/bold]")
+        console.print(Panel(
+            f"[{'green' if result.success else 'red'}]{result.reason}[/{'green' if result.success else 'red'}]",
+            title="Result"
+        ))
+        
         console.print("\n[bold]Original Input:[/bold]")
         console.print(Syntax(input_text, "text", theme="monokai"))
         
@@ -117,7 +130,11 @@ def dry_run(
             ))
         
     except Exception as e:
-        console.print(f"[red]Error: {str(e)}[/red]")
+        console.print(Panel(
+            f"[red]Error:[/red] {str(e)}",
+            title="[red]Error[/red]",
+            border_style="red"
+        ))
         raise typer.Exit(1)
 
 if __name__ == "__main__":

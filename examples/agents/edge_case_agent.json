@@ -1,0 +1,9 @@
+{
+    "name": "Alice",
+    "email": "",
+    "trustScore": null,
+    "role": "user",
+    "context": {
+        "department": "HR"
+    }
+} 

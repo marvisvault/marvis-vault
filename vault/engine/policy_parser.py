@@ -1,45 +1,31 @@
+"""
+Policy parser for loading and validating policy files.
+"""
+
 from pathlib import Path
-from typing import List, Union, Dict, Any
+from typing import List, Union, Dict, Any, Set
 import json
 import yaml
-from pydantic import BaseModel, Field, validator
-
-class PolicyCondition(BaseModel):
-    """Represents a single condition in a policy."""
-    field: str
-    operator: str
-    value: Any
+from pydantic import BaseModel, Field
 
 class Policy(BaseModel):
     """Represents a complete policy document."""
-    mask: str = Field(..., description="The pattern to use for masking")
+    mask: List[str] = Field(..., description="Fields to mask")
     unmask_roles: List[str] = Field(..., description="List of roles that can unmask data")
-    conditions: List[PolicyCondition] = Field(..., description="List of conditions that must be met")
+    conditions: List[str] = Field(..., description="List of conditions that must be met")
 
-    @validator('unmask_roles')
-    def validate_unmask_roles(cls, v):
-        if not v:
-            raise ValueError("unmask_roles cannot be empty")
-        return v
-
-    @validator('conditions')
-    def validate_conditions(cls, v):
-        if not v:
-            raise ValueError("conditions cannot be empty")
-        return v
-
-def parse_policy(file_path: Union[str, Path]) -> Policy:
+def load_policy(file_path: Union[str, Path]) -> Dict[str, Any]:
     """
-    Parse a policy file (JSON or YAML) and return a validated Policy object.
+    Load and validate a policy file.
     
     Args:
         file_path: Path to the policy file
         
     Returns:
-        Policy: Validated policy object
+        Dict containing the parsed policy
         
     Raises:
-        ValueError: If the file format is invalid or required fields are missing
+        ValueError: If the file format is invalid
         FileNotFoundError: If the file doesn't exist
     """
     path = Path(file_path)
@@ -55,10 +41,23 @@ def parse_policy(file_path: Union[str, Path]) -> Policy:
         else:
             raise ValueError(f"Unsupported file format: {path.suffix}")
         
-        return Policy(**data)
+        # Validate using Pydantic model
+        policy = Policy(**data)
+        return policy.model_dump()
+        
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON: {str(e)}")
     except yaml.YAMLError as e:
         raise ValueError(f"Invalid YAML: {str(e)}")
     except Exception as e:
-        raise ValueError(f"Failed to parse policy: {str(e)}") 
+        raise ValueError(f"Failed to parse policy: {str(e)}")
+
+def parse_policy(file_path: Union[str, Path]) -> Policy:
+    """
+    Parse a policy file and return a Policy object.
+    
+    This is a wrapper around load_policy that returns the Pydantic model
+    instead of a dict.
+    """
+    data = load_policy(file_path)
+    return Policy(**data) 

@@ -1,7 +1,11 @@
+"""
+Audit log export command.
+"""
+
 import json
 import csv
 from pathlib import Path
-from typing import List, Dict, Any, Literal
+from typing import List, Dict, Any
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -68,7 +72,7 @@ def audit(
         dir_okay=False,
         readable=True,
     ),
-    format: Literal["csv", "json"] = typer.Option(
+    format: str = typer.Option(
         "csv",
         "--format",
         "-f",
@@ -82,6 +86,10 @@ def audit(
     Each log entry must contain timestamp, action, field, and result fields.
     """
     try:
+        # Validate format
+        if format not in ["csv", "json"]:
+            raise typer.BadParameter("Format must be either 'csv' or 'json'")
+        
         # Read and validate audit log
         entries = read_audit_log(log)
         
@@ -92,10 +100,8 @@ def audit(
         # Format output
         if format == "csv":
             output = format_csv(entries)
-        elif format == "json":
+        else:  # format == "json"
             output = format_json(entries)
-        else:
-            raise typer.BadParameter(f"Unsupported format: {format}")
         
         # Write to stdout
         console.print(output)

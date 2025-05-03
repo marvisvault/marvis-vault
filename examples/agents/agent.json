@@ -1,0 +1,8 @@
+{
+    "role": "admin",
+    "trustScore": 85,
+    "context": {
+        "department": "IT",
+        "location": "US"
+    }
+} 

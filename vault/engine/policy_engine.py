@@ -1,76 +1,54 @@
-from typing import Dict, List, Optional
-from dataclasses import dataclass
-from pathlib import Path
-from .policy_parser import parse_policy, Policy
-from .condition_evaluator import evaluate_condition
+"""
+Policy engine for evaluating conditions against context.
+"""
 
-@dataclass
-class EvaluationResult:
-    """Result of a policy evaluation."""
-    status: bool
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from pydantic import BaseModel
+
+from .condition_evaluator import evaluate_condition
+from .policy_parser import parse_policy
+
+class EvaluationResult(BaseModel):
+    """Result of policy evaluation."""
+    success: bool
     reason: str
-    fields_to_mask: List[str]
-    policy: Optional[Policy] = None
+    fields: List[str] = []
 
 def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
     """
     Evaluate a policy against a context.
     
     Args:
-        context: Dictionary containing context values (e.g. trustScore, role)
-        policy_path: Path to the policy file (JSON or YAML)
+        context: Dictionary containing role, trustScore, etc.
+        policy_path: Path to policy file
         
     Returns:
-        EvaluationResult: Result of the policy evaluation
-        
-    Raises:
-        ValueError: If the policy is invalid or cannot be parsed
-        FileNotFoundError: If the policy file doesn't exist
+        EvaluationResult with success/failure and reason
     """
-    try:
-        # Parse the policy
-        policy = parse_policy(policy_path)
-        
-        # Evaluate each condition
-        all_conditions_met = True
-        reasons = []
-        
-        for condition in policy.conditions:
-            # Convert condition object to string format
-            condition_str = f"{condition.field} {condition.operator} {repr(condition.value)}"
-            
-            # Evaluate the condition
-            result, explanation = evaluate_condition(condition_str, context)
-            
-            if not result:
-                all_conditions_met = False
-                reasons.append(f"Condition failed: {explanation}")
-            else:
-                reasons.append(f"Condition passed: {explanation}")
-        
-        # Determine which fields to mask
-        fields_to_mask = []
-        if not all_conditions_met:
-            fields_to_mask = [field for field in context.keys()]
-        
-        # Build the final reason
-        final_reason = "\n".join(reasons)
-        if all_conditions_met:
-            final_reason = f"All conditions passed:\n{final_reason}"
-        else:
-            final_reason = f"Some conditions failed:\n{final_reason}"
-        
+    # Parse policy
+    policy = parse_policy(policy_path)
+    
+    # Check role
+    if context.get("role") not in policy.unmask_roles:
         return EvaluationResult(
-            status=all_conditions_met,
-            reason=final_reason,
-            fields_to_mask=fields_to_mask,
-            policy=policy
+            success=False,
+            reason=f"Role {context.get('role')} not in allowed roles: {policy.unmask_roles}",
+            fields=policy.mask
         )
-        
-    except Exception as e:
-        return EvaluationResult(
-            status=False,
-            reason=f"Policy evaluation failed: {str(e)}",
-            fields_to_mask=list(context.keys()),
-            policy=None
-        ) 
+    
+    # Evaluate conditions
+    for condition in policy.conditions:
+        success, explanation = evaluate_condition(condition, context)
+        if not success:
+            return EvaluationResult(
+                success=False,
+                reason=f"Condition failed: {explanation}",
+                fields=policy.mask
+            )
+            
+    return EvaluationResult(
+        success=True,
+        reason="All conditions passed",
+        fields=[]  # No fields to mask when successful
+    ) 

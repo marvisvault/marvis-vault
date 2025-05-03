@@ -1,9 +1,14 @@
+"""
+Simulate command for testing policy evaluation.
+"""
+
 import json
 from pathlib import Path
 from typing import Optional
 import typer
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
 from ..engine.policy_engine import evaluate
 
 app = typer.Typer()
@@ -12,34 +17,45 @@ console = Console()
 def load_agent_context(agent_path: Path) -> dict:
     """Load agent context from JSON file."""
     try:
-        return json.loads(agent_path.read_text())
+        context = json.loads(agent_path.read_text())
+        
+        # Validate required fields
+        if "role" not in context:
+            raise ValueError("Agent context must contain 'role' field")
+        if "trustScore" not in context:
+            raise ValueError("Agent context must contain 'trustScore' field")
+            
+        # Validate trustScore is numeric
+        try:
+            if context["trustScore"] is not None:
+                float(context["trustScore"])
+        except (TypeError, ValueError):
+            raise ValueError(f"trustScore must be numeric, got {type(context['trustScore'])}")
+            
+        return context
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in agent file: {str(e)}")
     except Exception as e:
         raise ValueError(f"Failed to load agent file: {str(e)}")
 
-def format_masking_explanation(result) -> str:
+def format_masking_explanation(result) -> Table:
     """Format the masking explanation in a readable way."""
-    if not result.fields_to_mask:
-        return "[green]No fields would be masked[/green] - all conditions are met"
+    if not result.fields:
+        table = Table(title="Masking Analysis")
+        table.add_column("Status", style="green")
+        table.add_row("No fields would be masked - all conditions are met")
+        return table
     
     table = Table(title="Masking Analysis")
     table.add_column("Field", style="cyan")
     table.add_column("Status", style="yellow")
     table.add_column("Reason", style="white")
     
-    for field in result.fields_to_mask:
-        # Find the relevant condition that caused masking
-        condition_reason = "Unknown"
-        for line in result.reason.split("\n"):
-            if field in line and "failed" in line.lower():
-                condition_reason = line
-                break
-        
+    for field in result.fields:
         table.add_row(
             field,
             "[red]MASKED[/red]",
-            condition_reason
+            result.reason
         )
     
     return table
@@ -78,20 +94,25 @@ def simulate(
         context = load_agent_context(agent)
         
         # Evaluate policy
-        result = evaluate(context, policy)
+        result = evaluate(context, str(policy))
         
         # Display results
         console.print("\n[bold]Policy Evaluation Results[/bold]")
-        console.print(f"\nPolicy Status: {'[green]PASS[/green]' if result.status else '[red]FAIL[/red]'}")
-        console.print(f"\nEvaluation Details:")
-        console.print(result.reason)
+        console.print(Panel(
+            f"[{'green' if result.success else 'red'}]{result.reason}[/{'green' if result.success else 'red'}]",
+            title="Result"
+        ))
         
         # Display masking analysis
         console.print("\n[bold]Masking Analysis[/bold]")
         console.print(format_masking_explanation(result))
         
     except Exception as e:
-        console.print(f"[red]Error: {str(e)}[/red]")
+        console.print(Panel(
+            f"[red]Error:[/red] {str(e)}",
+            title="[red]Error[/red]",
+            border_style="red"
+        ))
         raise typer.Exit(1)
 
 if __name__ == "__main__":
