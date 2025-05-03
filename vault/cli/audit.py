@@ -150,7 +150,8 @@ def audit(
             raise typer.Exit(0)
         
         # Format and display table
-        table = format_table(entries, role)
+        role_value = role.value if isinstance(role, typer.models.OptionInfo) else role
+        table = format_table(entries, role_filter=role_value)
         console.print(table)
         
     except typer.BadParameter as e:
