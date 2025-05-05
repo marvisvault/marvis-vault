@@ -1,4 +1,6 @@
+import re
 import pytest
+import unicodedata
 from vault.sdk.redact import redact, validate_policy, create_field_patterns, RedactionError
 
 @pytest.fixture
@@ -160,4 +162,60 @@ def test_missing_field_error():
         redact(text, policy)
     
     assert exc_info.value.field == "password"
-    assert "Field not found in input text" in str(exc_info.value) 
+    assert "Field not found in input text" in str(exc_info.value)
+
+def test_unicode_normalization_redaction():
+    """Test redaction with Unicode normalization (NFC form)."""
+    # Using decomposed form (NFD) of 'é'
+    decomposed_text = """{
+        "password": "se\u0301cret",
+        "apiKey": "key123"
+    }"""
+    
+    # Using composed form (NFC) of 'é'
+    composed_text = """{
+        "password": "sécrét",
+        "apiKey": "key123"
+    }"""
+    
+    policy = {
+        "mask": ["password", "apiKey"],
+        "unmaskRoles": ["admin"],
+        "conditions": ["isAdmin"]
+    }
+    
+    # Both forms should be redacted the same way
+    redacted_decomposed = redact(decomposed_text, policy)
+    redacted_composed = redact(composed_text, policy)
+    
+    assert "password: [REDACTED]" in redacted_decomposed
+    assert "password: [REDACTED]" in redacted_composed
+    assert "se\u0301cret" not in redacted_decomposed
+    assert "sécrét" not in redacted_composed
+
+def test_control_character_redaction():
+    """Test redaction with control characters."""
+    # Text containing various control characters
+    text = """{
+        "password": "my\x07bell\x1b[31mred\x1b[0msecret",
+        "apiKey": "key\x1f123"
+    }"""
+    
+    policy = {
+        "mask": ["password", "apiKey"],
+        "unmaskRoles": ["admin"],
+        "conditions": ["isAdmin"]
+    }
+    
+    redacted = redact(text, policy)
+    
+    # Control characters should be preserved in their sanitized form
+    assert "password: [REDACTED]" in redacted
+    assert "apiKey: [REDACTED]" in redacted
+    assert "<0x07>bell<0x1b>[31mred<0x1b>[0msecret" not in redacted
+    assert "key<0x1f>123" not in redacted
+    
+    # Verify that newlines and tabs are preserved
+    assert "\n" in redacted
+    assert "{" in redacted
+    assert "}" in redacted 

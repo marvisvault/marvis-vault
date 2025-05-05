@@ -1,4 +1,5 @@
 import re
+import unicodedata
 from typing import Dict, Any, Optional
 from vault.engine.policy_engine import evaluate
 
@@ -26,12 +27,27 @@ def validate_policy(policy: Dict[str, Any]) -> bool:
     
     return True
 
+def sanitize_control_chars(text: str) -> str:
+    """
+    Sanitize control characters in text by replacing them with visible placeholders.
+    This prevents regex matching issues and ensures safe logging.
+    """
+    # Replace control characters with visible placeholders
+    # ASCII control characters (0-31) except \n, \r, \t
+    control_chars = ''.join(chr(i) for i in range(32) if chr(i) not in '\n\r\t')
+    return ''.join(
+        f'<0x{ord(c):02x}>' if c in control_chars else c
+        for c in text
+    )
+
 def create_field_patterns(fields: list) -> Dict[str, re.Pattern]:
     """Create case-insensitive regex patterns for each field with proper escaping."""
     patterns = {}
     for field in fields:
+        # Normalize field name to NFC form to handle Unicode equivalence
+        normalized_field = unicodedata.normalize('NFC', field)
         # Escape field name to prevent regex injection and handle special characters
-        escaped_field = re.escape(field)
+        escaped_field = re.escape(normalized_field)
         # Create a pattern that matches the field name followed by a colon and value
         # Using DOTALL flag to match across multiple lines
         pattern = rf"{escaped_field}\s*:\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
@@ -64,11 +80,16 @@ def redact(text: str, policy: Dict[str, Any], context: Optional[Dict[str, Any]] 
         if not result.get("status", False):
             return text
     
+    # Normalize text to NFC form and sanitize control characters
+    # This ensures consistent matching and prevents regex issues
+    normalized_text = unicodedata.normalize('NFC', text)
+    sanitized_text = sanitize_control_chars(normalized_text)
+    
     # Create patterns for each field to mask
     patterns = create_field_patterns(policy["mask"])
     
     # Apply redaction to each field with error checking
-    redacted_text = text
+    redacted_text = sanitized_text
     for field, pattern in patterns.items():
         # Check if field exists in text before attempting redaction
         if not pattern.search(redacted_text):
