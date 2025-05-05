@@ -1,5 +1,5 @@
 import pytest
-from vault.sdk.redact import redact, validate_policy, create_field_patterns
+from vault.sdk.redact import redact, validate_policy, create_field_patterns, RedactionError
 
 @pytest.fixture
 def valid_policy():
@@ -123,4 +123,41 @@ def test_redact_malformed_policy(sample_text):
 def test_redact_no_matches(valid_policy):
     """Test redaction when no fields match."""
     text = "No sensitive fields here"
-    assert redact(text, valid_policy) == text 
+    assert redact(text, valid_policy) == text
+
+def test_multiline_field_redaction():
+    """Test redaction of fields with multiline values."""
+    text = """{
+        "password": "my\\nsecret\\npassword",
+        "apiKey": "key123"
+    }"""
+    
+    policy = {
+        "mask": ["password", "apiKey"],
+        "unmaskRoles": ["admin"],
+        "conditions": ["isAdmin"]
+    }
+    
+    redacted = redact(text, policy)
+    assert "password: [REDACTED]" in redacted
+    assert "apiKey: [REDACTED]" in redacted
+    assert "my\\nsecret\\npassword" not in redacted
+
+def test_missing_field_error():
+    """Test that RedactionError is raised when a required field is missing."""
+    text = """{
+        "username": "testuser",
+        "email": "test@example.com"
+    }"""
+    
+    policy = {
+        "mask": ["password", "username"],  # password field doesn't exist
+        "unmaskRoles": ["admin"],
+        "conditions": ["isAdmin"]
+    }
+    
+    with pytest.raises(RedactionError) as exc_info:
+        redact(text, policy)
+    
+    assert exc_info.value.field == "password"
+    assert "Field not found in input text" in str(exc_info.value) 
