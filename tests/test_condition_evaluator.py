@@ -1,5 +1,9 @@
 import pytest
-from vault.engine.condition_evaluator import evaluate_condition
+from vault.engine.condition_evaluator import (
+    evaluate_condition, 
+    ConditionValidationError,
+    CircularReferenceError
+)
 
 def test_simple_comparison():
     """Test simple comparison operations."""
@@ -119,4 +123,101 @@ def test_complex_nested_conditions():
     assert "85 > 80" in explanation
     assert "admin == admin" in explanation
     assert "IT == IT" in explanation
-    assert "US == US" in explanation 
+    assert "US == US" in explanation
+
+def test_invalid_numeric_string_fails():
+    """Test that string values cannot be coerced to numbers."""
+    context = {"trustScore": "85"}  # String instead of number
+    
+    with pytest.raises(ConditionValidationError) as exc_info:
+        evaluate_condition("trustScore > 80", context)
+    assert "must be numeric" in str(exc_info.value)
+
+def test_trustscore_bounds_check():
+    """Test that trustScore must be between 0 and 100."""
+    # Test below bounds
+    context = {"trustScore": -1}
+    with pytest.raises(ConditionValidationError) as exc_info:
+        evaluate_condition("trustScore > 0", context)
+    assert "must be between 0 and 100" in str(exc_info.value)
+    
+    # Test above bounds
+    context = {"trustScore": 101}
+    with pytest.raises(ConditionValidationError) as exc_info:
+        evaluate_condition("trustScore > 0", context)
+    assert "must be between 0 and 100" in str(exc_info.value)
+    
+    # Test valid bounds
+    context = {"trustScore": 0}
+    result, _ = evaluate_condition("trustScore >= 0", context)
+    assert result is True
+    
+    context = {"trustScore": 100}
+    result, _ = evaluate_condition("trustScore <= 100", context)
+    assert result is True
+
+def test_malformed_token_sequence_raises():
+    """Test that malformed token sequences are rejected."""
+    context = {"trustScore": 85}
+    
+    # Test invalid operator sequences
+    with pytest.raises(ConditionValidationError) as exc_info:
+        evaluate_condition("trustScore >> 80", context)
+    assert "Invalid operator sequence" in str(exc_info.value)
+    
+    with pytest.raises(ConditionValidationError) as exc_info:
+        evaluate_condition("trustScore << 80", context)
+    assert "Invalid operator sequence" in str(exc_info.value)
+    
+    # Test token limit
+    long_condition = " && ".join(["trustScore > 80"] * 51)  # 101 tokens
+    with pytest.raises(ConditionValidationError) as exc_info:
+        evaluate_condition(long_condition, context)
+    assert "exceeds maximum token limit" in str(exc_info.value)
+
+def test_direct_circular_reference_fails():
+    """Test that direct self-references are detected."""
+    context = {
+        "score": "score"  # score references itself
+    }
+    
+    with pytest.raises(CircularReferenceError) as exc_info:
+        evaluate_condition("score > 0", context)
+    assert "Circular reference detected" in str(exc_info.value)
+    assert "score -> score" in str(exc_info.value)
+
+def test_indirect_circular_reference_chain_fails():
+    """Test that indirect circular references are detected."""
+    context = {
+        "score": "trustScore",
+        "trustScore": "score"  # score -> trustScore -> score
+    }
+    
+    with pytest.raises(CircularReferenceError) as exc_info:
+        evaluate_condition("score > 0", context)
+    assert "Circular reference detected" in str(exc_info.value)
+    assert "score -> trustScore -> score" in str(exc_info.value)
+
+def test_max_recursion_depth_enforced():
+    """Test that maximum recursion depth is enforced."""
+    # Create a long but valid chain
+    context = {}
+    for i in range(19):  # Just under the limit
+        context[f"field{i}"] = f"field{i+1}"
+    context["field19"] = 100  # Terminal value
+    
+    # This should pass
+    result, _ = evaluate_condition("field0 > 0", context)
+    assert result is True
+    
+    # Create an infinite chain
+    context = {
+        "field0": "field1",
+        "field1": "field2",
+        "field2": "field0"  # Creates a cycle
+    }
+    
+    with pytest.raises(CircularReferenceError) as exc_info:
+        evaluate_condition("field0 > 0", context)
+    assert "Circular reference detected" in str(exc_info.value)
+    assert "field0 -> field1 -> field2 -> field0" in str(exc_info.value) 

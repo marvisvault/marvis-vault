@@ -2,9 +2,22 @@
 Condition evaluator for policy engine.
 """
 
-from typing import Dict, Tuple, Any, List, Optional
+from typing import Dict, Tuple, Any, List, Optional, Union, Set
 import re
 from enum import Enum, auto
+
+class ConditionValidationError(ValueError):
+    """Custom exception for condition validation errors."""
+    pass
+
+class CircularReferenceError(ValueError):
+    """Raised when a circular reference is detected in condition evaluation."""
+    def __init__(self, field: str, chain: List[str]):
+        self.field = field
+        self.chain = chain
+        super().__init__(
+            f"Circular reference detected: {' -> '.join(chain)} -> {field}"
+        )
 
 class Operator(Enum):
     """Supported operators for condition evaluation."""
@@ -29,23 +42,62 @@ class Token:
         self.value = value
 
 def _validate_numeric(value: Any, field_name: str) -> float:
-    """Validate that a value is numeric and convert to float."""
+    """
+    Validate that a value is numeric and within bounds.
+    
+    Args:
+        value: The value to validate
+        field_name: Name of the field being validated
+        
+    Returns:
+        float: The validated numeric value
+        
+    Raises:
+        ConditionValidationError: If value is invalid or out of bounds
+    """
     if value is None:
-        raise ValueError(f"Field '{field_name}' cannot be null")
-    try:
-        if isinstance(value, (int, float)):
-            return float(value)
-        if isinstance(value, str) and value.strip():
-            return float(value.strip())
-        raise ValueError(f"Field '{field_name}' must be numeric")
-    except (TypeError, ValueError):
-        raise ValueError(f"Field '{field_name}' must be numeric, got {type(value)}")
+        raise ConditionValidationError(f"Field '{field_name}' cannot be null")
+        
+    # Only accept actual numbers, not strings that can be coerced
+    if not isinstance(value, (int, float)):
+        raise ConditionValidationError(
+            f"Field '{field_name}' must be numeric, got {type(value)}"
+        )
+        
+    # Convert to float for consistent comparison
+    num_value = float(value)
+    
+    # Add bounds check for trustScore
+    if field_name == "trustScore" and not (0 <= num_value <= 100):
+        raise ConditionValidationError(
+            f"Field '{field_name}' must be between 0 and 100 inclusive"
+        )
+        
+    return num_value
 
 def _tokenize(condition: str) -> list[Token]:
-    """Convert condition string into a list of tokens."""
+    """
+    Convert condition string into a list of tokens.
+    
+    Args:
+        condition: The condition string to tokenize
+        
+    Returns:
+        list[Token]: List of parsed tokens
+        
+    Raises:
+        ConditionValidationError: If token limit exceeded or invalid tokens found
+    """
+    MAX_TOKENS = 100
     tokens = []
     i = 0
+    
     while i < len(condition):
+        if len(tokens) >= MAX_TOKENS:
+            raise ConditionValidationError(
+                f"Condition exceeds maximum token limit of {MAX_TOKENS}"
+            )
+            
         char = condition[i]
         
         # Skip whitespace
@@ -55,6 +107,14 @@ def _tokenize(condition: str) -> list[Token]:
             
         # Handle operators
         if char in ['&', '|', '=', '!', '>', '<']:
+            # Check for invalid operator sequences
+            if i + 1 < len(condition):
+                next_char = condition[i + 1]
+                if char in ['>', '<'] and next_char in ['>', '<']:
+                    raise ConditionValidationError(
+                        f"Invalid operator sequence '{char}{next_char}' at position {i}"
+                    )
+                    
             if i + 1 < len(condition) and condition[i:i+2] == '&&':
                 tokens.append(Token(TokenType.OPERATOR, Operator.AND))
                 i += 2
@@ -74,7 +134,7 @@ def _tokenize(condition: str) -> list[Token]:
                 tokens.append(Token(TokenType.OPERATOR, Operator.LESS_THAN))
                 i += 1
             else:
-                raise ValueError(f"Invalid operator at position {i}")
+                raise ConditionValidationError(f"Invalid operator at position {i}")
                 
         # Handle parentheses
         elif char in ['(', ')']:
@@ -85,17 +145,17 @@ def _tokenize(condition: str) -> list[Token]:
         else:
             # Match identifiers, numbers, or strings
             if char.isalpha():
-                # Match identifier
-                match = re.match(r'[a-zA-Z_][a-zA-Z0-9_]*', condition[i:])
+                # Match identifier - must be full match
+                match = re.fullmatch(r'[a-zA-Z_][a-zA-Z0-9_]*', condition[i:])
                 if not match:
-                    raise ValueError(f"Invalid identifier at position {i}")
+                    raise ConditionValidationError(f"Invalid identifier at position {i}")
                 tokens.append(Token(TokenType.VALUE, match.group()))
                 i += len(match.group())
             elif char.isdigit() or char == '-':
-                # Match number
-                match = re.match(r'-?\d+(\.\d+)?', condition[i:])
+                # Match number - must be full match
+                match = re.fullmatch(r'-?\d+(\.\d+)?', condition[i:])
                 if not match:
-                    raise ValueError(f"Invalid number at position {i}")
+                    raise ConditionValidationError(f"Invalid number at position {i}")
                 tokens.append(Token(TokenType.VALUE, float(match.group())))
                 i += len(match.group())
             elif char == "'" or char == '"':
@@ -106,11 +166,11 @@ def _tokenize(condition: str) -> list[Token]:
                 while i < len(condition) and condition[i] != quote:
                     i += 1
                 if i >= len(condition):
-                    raise ValueError(f"Unclosed string at position {start-1}")
+                    raise ConditionValidationError(f"Unclosed string at position {start-1}")
                 tokens.append(Token(TokenType.LITERAL, condition[start:i]))
                 i += 1
             else:
-                raise ValueError(f"Unexpected character at position {i}")
+                raise ConditionValidationError(f"Unexpected character at position {i}")
                 
     return tokens
 
@@ -129,8 +189,36 @@ def _find_matching_paren(tokens: List[Token], start: int) -> int:
         i += 1
     raise ValueError("Unmatched parenthesis")
 
-def _evaluate_expression(tokens: List[Token], context: Dict[str, Any]) -> Tuple[bool, str]:
-    """Evaluate a list of tokens using the provided context."""
+def _evaluate_expression(
+    tokens: List[Token], 
+    context: Dict[str, Any],
+    visited_fields: Optional[Set[str]] = None,
+    depth: int = 0
+) -> Tuple[bool, str]:
+    """
+    Evaluate a list of tokens using the provided context.
+    
+    Args:
+        tokens: List of tokens to evaluate
+        context: Dictionary containing context values
+        visited_fields: Set of fields already visited in this evaluation chain
+        depth: Current recursion depth
+        
+    Returns:
+        Tuple[bool, str]: (result, explanation)
+        
+    Raises:
+        CircularReferenceError: If a circular reference is detected
+        ValueError: If the condition is invalid or context keys are missing
+    """
+    MAX_RECURSION_DEPTH = 20
+    
+    if depth > MAX_RECURSION_DEPTH:
+        raise ValueError(f"Maximum recursion depth of {MAX_RECURSION_DEPTH} exceeded")
+        
+    if visited_fields is None:
+        visited_fields = set()
+        
     if not tokens:
         return True, "Empty condition"
         
@@ -138,15 +226,20 @@ def _evaluate_expression(tokens: List[Token], context: Dict[str, Any]) -> Tuple[
     if tokens[0].type == TokenType.PAREN and tokens[0].value == '(':
         end = _find_matching_paren(tokens, 0)
         if end == len(tokens) - 1:
-            return _evaluate_expression(tokens[1:end], context)
+            return _evaluate_expression(tokens[1:end], context, visited_fields, depth + 1)
             
     # Handle single value
     if len(tokens) == 1:
         if tokens[0].type not in [TokenType.VALUE, TokenType.LITERAL]:
             raise ValueError("Invalid expression")
         value = tokens[0].value
-        if tokens[0].type == TokenType.VALUE and isinstance(value, str) and value in context:
-            return bool(context[value]), f"Context value '{value}' is {bool(context[value])}"
+        if tokens[0].type == TokenType.VALUE and isinstance(value, str):
+            if value in visited_fields:
+                raise CircularReferenceError(value, list(visited_fields))
+            if value in context:
+                visited_fields.add(value)
+                return bool(context[value]), f"Context value '{value}' is {bool(context[value])}"
+            raise ValueError(f"Context key '{value}' not found")
         return bool(value), f"Value {value} is {bool(value)}"
         
     # Handle comparison
@@ -156,14 +249,22 @@ def _evaluate_expression(tokens: List[Token], context: Dict[str, Any]) -> Tuple[
         right = tokens[2].value
         
         # Get left value from context if it's a context variable
-        if tokens[0].type == TokenType.VALUE and isinstance(left, str) and left in context:
-            left = context[left]
-        elif tokens[0].type == TokenType.VALUE and isinstance(left, str):
-            raise ValueError(f"Context key '{left}' not found")
+        if tokens[0].type == TokenType.VALUE and isinstance(left, str):
+            if left in visited_fields:
+                raise CircularReferenceError(left, list(visited_fields))
+            if left in context:
+                visited_fields.add(left)
+                left = context[left]
+            else:
+                raise ValueError(f"Context key '{left}' not found")
             
         # Get right value from context if it's a context variable
-        if tokens[2].type == TokenType.VALUE and isinstance(right, str) and right in context:
-            right = context[right]
+        if tokens[2].type == TokenType.VALUE and isinstance(right, str):
+            if right in visited_fields:
+                raise CircularReferenceError(right, list(visited_fields))
+            if right in context:
+                visited_fields.add(right)
+                right = context[right]
             
         # Validate numeric comparisons
         if op in [Operator.GREATER_THAN, Operator.LESS_THAN]:
@@ -190,8 +291,12 @@ def _evaluate_expression(tokens: List[Token], context: Dict[str, Any]) -> Tuple[
     # Handle AND/OR operations
     for i in range(len(tokens)):
         if tokens[i].type == TokenType.OPERATOR and tokens[i].value in [Operator.AND, Operator.OR]:
-            left_result, left_explanation = _evaluate_expression(tokens[:i], context)
-            right_result, right_explanation = _evaluate_expression(tokens[i+1:], context)
+            left_result, left_explanation = _evaluate_expression(
+                tokens[:i], context, visited_fields.copy(), depth + 1
+            )
+            right_result, right_explanation = _evaluate_expression(
+                tokens[i+1:], context, visited_fields.copy(), depth + 1
+            )
             
             if tokens[i].value == Operator.AND:
                 result = left_result and right_result
@@ -202,22 +307,30 @@ def _evaluate_expression(tokens: List[Token], context: Dict[str, Any]) -> Tuple[
                 
     raise ValueError("Invalid expression structure")
 
-def evaluate_condition(condition: str, context: Dict[str, Any]) -> Tuple[bool, str]:
+def evaluate_condition(
+    condition: str, 
+    context: Dict[str, Any],
+    visited_fields: Optional[Set[str]] = None
+) -> Tuple[bool, str]:
     """
     Evaluate a condition string using the provided context.
     
     Args:
         condition: String containing the condition to evaluate
         context: Dictionary containing context values
+        visited_fields: Set of fields already visited in this evaluation chain
         
     Returns:
         Tuple[bool, str]: (result, explanation)
         
     Raises:
+        CircularReferenceError: If a circular reference is detected
         ValueError: If the condition is invalid or context keys are missing
     """
     try:
         tokens = _tokenize(condition)
-        return _evaluate_expression(tokens, context)
+        return _evaluate_expression(tokens, context, visited_fields)
     except Exception as e:
+        if isinstance(e, CircularReferenceError):
+            raise
         raise ValueError(f"Failed to evaluate condition: {str(e)}") 
