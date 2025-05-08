@@ -2,7 +2,7 @@ import re
 import json
 import unicodedata
 from typing import Dict, Any, Optional, Union, List, Tuple, Set
-from datetime import datetime
+from datetime import datetime, timezone
 from vault.engine.policy_engine import evaluate
 
 class RedactionError(Exception):
@@ -18,7 +18,7 @@ class RedactionResult:
         self.content = content
         self.is_json = is_json
         self.audit_log = []
-        self.timestamp = datetime.utcnow().isoformat()
+        self.timestamp = datetime.now(timezone.utc).isoformat()
         self.redacted_fields: Set[str] = set()
         self.line_mapping: Dict[int, List[Dict[str, Any]]] = {}
 
@@ -83,7 +83,7 @@ def validate_policy(policy: Dict[str, Any]) -> bool:
     if not all(isinstance(policy[field], list) for field in required_fields):
         return False
 
-    if not all(policy[field] for field in required_fields):  # Check for empty lists
+    if not all(isinstance(policy[field], list) for field in required_fields):
         return False
 
     # Validate field conditions if present
@@ -260,5 +260,10 @@ def redact(content: str, policy: Dict[str, Any], context: Optional[Dict[str, Any
             result.add_audit_entry("system", f"JSON redaction failed, fell back to text: {str(e)}")
     else:
         result.content = redact_text(content, policy, result)
+        result.add_audit_entry(
+            "system",
+            "JSON redaction failed, fell back to text: malformed JSON input",
+            content
+        )
 
     return result

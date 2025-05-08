@@ -58,19 +58,25 @@ def write_audit_log(result: RedactionResult, audit_path: Path, force: bool = Fal
 
         # Group audit entries by field
         field_stats = {}
+        # Initialize field_stats with all redacted fields (even if no line info)
+        for field in result.redacted_fields:
+            field_stats[field] = {
+                "count": 0,
+                "first_line": None,
+                "last_line": None
+            }
+
+        # Now count from the audit_log
         for entry in result.audit_log:
             field = entry["field"]
-            if field not in field_stats:
-                field_stats[field] = {
-                    "count": 0,
-                    "first_line": float('inf'),
-                    "last_line": 0
-                }
             stats = field_stats[field]
             stats["count"] += 1
-            if entry.get("line_number"):
-                stats["first_line"] = min(stats["first_line"], entry["line_number"])
-                stats["last_line"] = max(stats["last_line"], entry["line_number"])
+            if entry.get("line_number") is not None:
+                if stats["first_line"] is None or entry["line_number"] < stats["first_line"]:
+                    stats["first_line"] = entry["line_number"]
+                if stats["last_line"] is None or entry["line_number"] > stats["last_line"]:
+                    stats["last_line"] = entry["line_number"]
+
 
         # Add rows to table
         for field, stats in field_stats.items():
