@@ -1,0 +1,14 @@
+{
+  "roles": ["admin", "user"],
+  "fields_to_mask": ["ssn", "email"],
+  "conditions": [
+    {
+      "field": "trust_score",
+      "result": "pass"
+    },
+    {
+      "field": "role",
+      "result": "pass"
+    }
+  ]
+} 

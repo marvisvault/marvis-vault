@@ -1,6 +1,6 @@
 {
   "mask": ["email", "phone"],
-  "unmaskRoles": ["admin", "data_protection_officer"],
+  "unmask_roles": ["admin", "data_protection_officer"],
   "conditions": [
     "trustScore > 80 && role != 'auditor'",
     "trustScore > 70 && role == 'data_protection_officer'"

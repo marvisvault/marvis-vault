@@ -1,0 +1,18 @@
+{
+  "roles": ["admin", "auditor"],
+  "fields_to_mask": ["ssn", "phone"],
+  "conditions": [
+    {
+      "field": "trust_score",
+      "result": "fail"
+    },
+    {
+      "field": "role",
+      "result": "pass"
+    },
+    {
+      "field": "department",
+      "result": "pass"
+    }
+  ]
+} 

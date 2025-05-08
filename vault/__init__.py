@@ -12,4 +12,5 @@ from vault.sdk.redact import redact
 from vault.sdk.unmask import unmask
 from vault.sdk.audit import audit
 
-__all__ = ["redact", "unmask", "audit"] 
+
+__all__ = ["redact", "unmask", "audit",] 

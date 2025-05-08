@@ -10,10 +10,37 @@ from rich.syntax import Syntax
 app = typer.Typer()
 console = Console()
 
+def validate_evaluation_result(data: Dict[str, Any]) -> None:
+    """Validate the structure of an evaluation result."""
+    required_fields = {"roles", "fields_to_mask", "conditions"}
+    missing_fields = required_fields - set(data.keys())
+    if missing_fields:
+        raise typer.BadParameter(f"Invalid evaluation result: missing fields {missing_fields}")
+    
+    if not isinstance(data.get("roles", []), list):
+        raise typer.BadParameter("Invalid evaluation result: 'roles' must be a list")
+    if not isinstance(data.get("fields_to_mask", []), list):
+        raise typer.BadParameter("Invalid evaluation result: 'fields_to_mask' must be a list")
+    if not isinstance(data.get("conditions", []), list):
+        raise typer.BadParameter("Invalid evaluation result: 'conditions' must be a list")
+    
+    # Validate condition structure
+    for i, condition in enumerate(data.get("conditions", [])):
+        if not isinstance(condition, dict):
+            raise typer.BadParameter(f"Invalid evaluation result: condition {i} must be a dictionary")
+        if "field" not in condition:
+            raise typer.BadParameter(f"Invalid evaluation result: condition {i} missing 'field'")
+        if "result" not in condition:
+            raise typer.BadParameter(f"Invalid evaluation result: condition {i} missing 'result'")
+        if condition["result"] not in ["pass", "fail"]:
+            raise typer.BadParameter(f"Invalid evaluation result: condition {i} result must be 'pass' or 'fail'")
+
 def load_evaluation_result(file_path: Path) -> Dict[str, Any]:
     """Load a policy evaluation result from JSON file."""
     try:
-        return json.loads(file_path.read_text())
+        data = json.loads(file_path.read_text())
+        validate_evaluation_result(data)
+        return data
     except json.JSONDecodeError as e:
         raise typer.BadParameter(f"Invalid JSON in {file_path}: {str(e)}")
     except Exception as e:

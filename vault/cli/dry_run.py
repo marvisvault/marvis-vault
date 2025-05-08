@@ -51,12 +51,31 @@ def format_masked_preview(text: str, fields_to_mask: Set[str]) -> str:
     if not fields_to_mask:
         return text
     
-    # Create a simple preview by replacing field values with [MASKED]
+    # Create a preview by masking field values
     preview = text
     for field in fields_to_mask:
-        # This is a simple placeholder - in a real implementation,
-        # you'd want to use proper field detection/regex
-        preview = preview.replace(field, "[MASKED]")
+        # Handle different field formats
+        patterns = [
+            # JSON patterns
+            (fr'"{field}"\s*:\s*"([^"]*)"', fr'"{field}": "[MASKED]"'),  # JSON string values
+            (fr"'{field}'\s*:\s*'([^']*)'", fr"'{field}': '[MASKED]'"),  # JSON string values with single quotes
+            (fr'"{field}"\s*:\s*(\d+)', fr'"{field}": "[MASKED]"'),      # JSON number values
+            (fr"'{field}'\s*:\s*(\d+)", fr"'{field}': '[MASKED]'"),      # JSON number values with single quotes
+            
+            # Key-value patterns
+            (fr"{field}\s*=\s*([^&\s]+)", fr"{field}=[MASKED]"),         # URL parameters
+            (fr"{field}\s*:\s*([^\n]+)", fr"{field}: [MASKED]"),         # Key-value pairs
+            (fr"{field}\s*=\s*'([^']*)'", fr"{field}='[MASKED]'"),       # Single quoted values
+            (fr'{field}\s*=\s*"([^"]*)"', fr'{field}="[MASKED]"'),       # Double quoted values
+            
+            # Common patterns
+            (fr"<{field}>([^<]+)</{field}>", fr"<{field}>[MASKED]</{field}>"),  # XML tags
+            (fr"\b{field}\b", fr"[MASKED {field}]"),                     # Word boundaries
+        ]
+        
+        for pattern, replacement in patterns:
+            import re
+            preview = re.sub(pattern, replacement, preview, flags=re.IGNORECASE)
     
     return preview
 
