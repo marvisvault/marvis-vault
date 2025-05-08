@@ -2,63 +2,59 @@
 Redact command for masking sensitive data.
 """
 
-import json
+import sys
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TextIO
 import typer
 from rich.console import Console
-from rich.panel import Panel
 from rich.prompt import Confirm
-from ..sdk.redact import validate_policy, redact_data
+from ..engine.policy_engine import evaluate
+import re
 
 app = typer.Typer()
 console = Console()
 
-def load_agent_context(agent_path: Optional[Path]) -> dict:
-    """Load agent context from JSON file if provided."""
-    if not agent_path:
-        return {}
-        
-    try:
-        context = json.loads(agent_path.read_text())
-        
-        # Validate required fields
-        if "role" not in context:
-            raise ValueError("Agent context must contain 'role' field")
-        if "trustScore" not in context:
-            raise ValueError("Agent context must contain 'trustScore' field")
-            
-        # Validate trustScore is numeric
-        try:
-            if context["trustScore"] is not None:
-                float(context["trustScore"])
-        except (TypeError, ValueError):
-            raise ValueError(f"trustScore must be numeric, got {type(context['trustScore'])}")
-            
-        return context
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in agent file: {str(e)}")
-    except Exception as e:
-        raise ValueError(f"Failed to load agent file: {str(e)}")
+def read_input(input_path: Optional[Path]) -> str:
+    """Read input from file or stdin."""
+    if input_path:
+        return input_path.read_text()
+    return sys.stdin.read()
 
-def write_output(data: dict, output_path: Optional[Path], force: bool = False) -> None:
-    """Write redacted data to file or stdout."""
+def write_output(content: str, output_path: Optional[Path], force: bool = False) -> None:
+    """Write output to file or stdout."""
     if output_path:
         if output_path.exists() and not force:
             if not Confirm.ask(f"File {output_path} exists. Overwrite?"):
                 console.print("[yellow]Operation cancelled[/yellow]")
-                raise typer.Exit(1)
-        output_path.write_text(json.dumps(data, indent=2))
+                sys.exit(1)
+        output_path.write_text(content)
     else:
-        console.print(json.dumps(data, indent=2))
+        sys.stdout.write(content)
+
+def redact_text(text: str, fields_to_mask: list[str]) -> str:
+    """Apply redaction to text while preserving formatting."""
+    # Split text into lines to preserve formatting
+    lines = text.splitlines()
+    redacted_lines = []
+    
+    for line in lines:
+        # For each field to mask, replace its value with [REDACTED]
+        redacted_line = line
+        for field in fields_to_mask:
+            # Simple pattern matching - can be enhanced based on requirements
+            pattern = f"{field}[:=]\\s*[^\\s,;]+"
+            redacted_line = re.sub(pattern, f"{field}: [REDACTED]", redacted_line)
+        redacted_lines.append(redacted_line)
+    
+    return "\n".join(redacted_lines)
 
 @app.command()
 def redact(
-    data: Path = typer.Option(
-        ...,
-        "--data",
-        "-d",
-        help="Path to data file to redact",
+    input: Optional[Path] = typer.Option(
+        None,
+        "--input",
+        "-i",
+        help="Input file path. If not provided, reads from stdin.",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -68,17 +64,7 @@ def redact(
         ...,
         "--policy",
         "-p",
-        help="Path to policy file (JSON or YAML)",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-    ),
-    agent: Optional[Path] = typer.Option(
-        None,
-        "--agent",
-        "-a",
-        help="Path to agent context JSON file",
+        help="Policy file path (JSON or YAML)",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -101,57 +87,34 @@ def redact(
     ),
 ) -> None:
     """
-    Redact sensitive data based on policy rules.
+    Redact sensitive information from input text based on policy rules.
     
-    This command takes a data file and applies redaction rules from a policy file.
-    The policy file can be in JSON or YAML format and must contain valid redaction rules.
-    
-    If an agent context file is provided, it will be used to evaluate role-based
-    redaction rules. The agent context must contain:
-    - role: The role of the agent
-    - trustScore: A numeric trust score
-    
-    The output can be written to a file or stdout in JSON format.
+    The input can be read from a file or stdin, and the output can be written
+    to a file or stdout. The policy file determines which fields should be redacted.
     """
     try:
-        # Load data
-        try:
-            data_content = json.loads(data.read_text())
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON in data file: {str(e)}")
-            
-        # Load agent context if provided
-        context = load_agent_context(agent)
+        # Read input
+        input_text = read_input(input)
         
-        # Validate policy
-        try:
-            validate_policy(str(policy))
-        except ValueError as e:
-            raise ValueError(f"Invalid policy: {str(e)}")
-            
-        # Perform redaction
-        try:
-            redacted_data = redact_data(data_content, str(policy), context)
-        except Exception as e:
-            raise ValueError(f"Redaction failed: {str(e)}")
-            
+        # Create context from input text
+        context = {}
+        for line in input_text.splitlines():
+            if ":" in line:
+                key, value = line.split(":", 1)
+                context[key.strip()] = value.strip()
+        
+        # Evaluate policy
+        result = evaluate(context, str(policy))
+        
+        # Apply redaction
+        redacted_text = redact_text(input_text, result.fields)
+        
         # Write output
-        write_output(redacted_data, output, force)
+        write_output(redacted_text, output, force)
         
-    except ValueError as e:
-        console.print(Panel(
-            f"[red]Error:[/red] {str(e)}",
-            title="[red]Error[/red]",
-            border_style="red"
-        ))
-        raise typer.Exit(1)
     except Exception as e:
-        console.print(Panel(
-            f"[red]Unexpected error:[/red] {str(e)}",
-            title="[red]Error[/red]",
-            border_style="red"
-        ))
-        raise typer.Exit(1)
+        console.print(f"[red]Error: {str(e)}[/red]")
+        sys.exit(1)
 
 if __name__ == "__main__":
     app() 
