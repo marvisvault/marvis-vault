@@ -27,9 +27,12 @@ def attach_stream_logger(result: RedactionResult, stream_log: Path):
     def stream_hook(field, reason, value=None, line_number=None, context=None):
         entry = {
             "timestamp": result.timestamp,
+            "action": "redact", 
+            "role": "user",
             "field": field,
             "reason": reason,
-            "original_value": value,
+            "input": value,
+            "output": f"{field}: [REDACTED]" if field != "system" else result.content,
             "line_number": line_number,
             "context": context
         }
