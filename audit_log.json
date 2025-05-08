@@ -1,0 +1,68 @@
+{
+  "summary": {
+    "total_fields_redacted": 2,
+    "total_occurrences": 2,
+    "timestamp": "2025-05-08T04:39:26.639186",
+    "format": "Text"
+  },
+  "field_statistics": {
+    "email": {
+      "count": 1,
+      "first_line": 3,
+      "last_line": 3
+    },
+    "phone": {
+      "count": 1,
+      "first_line": 6,
+      "last_line": 6
+    }
+  },
+  "detailed_log": [
+    {
+      "timestamp": "2025-05-08T04:39:26.639186",
+      "field": "email",
+      "reason": "Field masked in text",
+      "original_value": "john.doe@example.com",
+      "line_number": 3,
+      "context": {
+        "line": "email: john.doe@example.com"
+      }
+    },
+    {
+      "timestamp": "2025-05-08T04:39:26.639186",
+      "field": "phone",
+      "reason": "Field masked in text",
+      "original_value": "+1-555-123-4567",
+      "line_number": 6,
+      "context": {
+        "line": "phone: +1-555-123-4567"
+      }
+    }
+  ],
+  "line_mapping": {
+    "3": [
+      {
+        "timestamp": "2025-05-08T04:39:26.639186",
+        "field": "email",
+        "reason": "Field masked in text",
+        "original_value": "john.doe@example.com",
+        "line_number": 3,
+        "context": {
+          "line": "email: john.doe@example.com"
+        }
+      }
+    ],
+    "6": [
+      {
+        "timestamp": "2025-05-08T04:39:26.639186",
+        "field": "phone",
+        "reason": "Field masked in text",
+        "original_value": "+1-555-123-4567",
+        "line_number": 6,
+        "context": {
+          "line": "phone: +1-555-123-4567"
+        }
+      }
+    ]
+  }
+}

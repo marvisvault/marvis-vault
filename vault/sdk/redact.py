@@ -1,6 +1,8 @@
 import re
+import json
 import unicodedata
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union, List, Tuple, Set
+from datetime import datetime
 from vault.engine.policy_engine import evaluate
 
 class RedactionError(Exception):
@@ -10,96 +12,253 @@ class RedactionError(Exception):
         self.message = message
         super().__init__(f"Redaction failed for field '{field}': {message}")
 
+class RedactionResult:
+    """Structured result of redaction operation."""
+    def __init__(self, content: str, is_json: bool = False):
+        self.content = content
+        self.is_json = is_json
+        self.audit_log = []
+        self.timestamp = datetime.utcnow().isoformat()
+        self.redacted_fields: Set[str] = set()
+        self.line_mapping: Dict[int, List[Dict[str, Any]]] = {}
+
+    def add_audit_entry(self, field: str, reason: str, value: Optional[str] = None, 
+                       line_number: Optional[int] = None, context: Optional[Dict[str, Any]] = None):
+        """Add an entry to the audit log with line number and context."""
+        entry = {
+            "timestamp": self.timestamp,
+            "field": field,
+            "reason": reason,
+            "original_value": value,
+            "line_number": line_number,
+            "context": context
+        }
+        self.audit_log.append(entry)
+        self.redacted_fields.add(field)
+        
+        if line_number is not None:
+            if line_number not in self.line_mapping:
+                self.line_mapping[line_number] = []
+            self.line_mapping[line_number].append(entry)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert result to dictionary format."""
+        return {
+            "content": self.content,
+            "is_json": self.is_json,
+            "audit_log": self.audit_log,
+            "timestamp": self.timestamp,
+            "redacted_fields": list(self.redacted_fields),
+            "line_mapping": self.line_mapping
+        }
+
+def normalize_policy_keys(policy: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize policy keys to support both snake_case and camelCase."""
+    key_map = {
+        "unmask_roles": "unmaskRoles",
+        "unmaskRoles": "unmaskRoles",
+        "mask": "mask",
+        "conditions": "conditions",
+        "field_conditions": "fieldConditions",
+        "field_aliases": "fieldAliases"
+    }
+    normalized = {}
+    for key, value in policy.items():
+        norm_key = key_map.get(key)
+        if norm_key:
+            normalized[norm_key] = value
+    return normalized
+
 def validate_policy(policy: Dict[str, Any]) -> bool:
     """Validate that the policy has required fields and correct types."""
     if not isinstance(policy, dict):
         return False
-    
+
+    policy = normalize_policy_keys(policy)
+
     required_fields = {"mask", "unmaskRoles", "conditions"}
     if not all(field in policy for field in required_fields):
         return False
-    
+
     if not all(isinstance(policy[field], list) for field in required_fields):
         return False
-    
+
     if not all(policy[field] for field in required_fields):  # Check for empty lists
         return False
-    
+
+    # Validate field conditions if present
+    if "fieldConditions" in policy:
+        if not isinstance(policy["fieldConditions"], dict):
+            return False
+        for field, condition in policy["fieldConditions"].items():
+            if not isinstance(condition, (str, list)):
+                return False
+
+    # Validate field aliases if present
+    if "fieldAliases" in policy:
+        if not isinstance(policy["fieldAliases"], dict):
+            return False
+        for field, aliases in policy["fieldAliases"].items():
+            if not isinstance(aliases, list):
+                return False
+
     return True
 
-def sanitize_control_chars(text: str) -> str:
-    """
-    Sanitize control characters in text by replacing them with visible placeholders.
-    This prevents regex matching issues and ensures safe logging.
-    """
-    # Replace control characters with visible placeholders
-    # ASCII control characters (0-31) except \n, \r, \t
-    control_chars = ''.join(chr(i) for i in range(32) if chr(i) not in '\n\r\t')
-    return ''.join(
-        f'<0x{ord(c):02x}>' if c in control_chars else c
-        for c in text
-    )
+def detect_format(content: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    """Detect if content is JSON and parse if possible."""
+    try:
+        parsed = json.loads(content)
+        return True, parsed
+    except json.JSONDecodeError:
+        return False, None
 
-def create_field_patterns(fields: list) -> Dict[str, re.Pattern]:
+def create_field_patterns(fields: List[str], aliases: Optional[Dict[str, List[str]]] = None) -> Dict[str, re.Pattern]:
     """Create case-insensitive regex patterns for each field with proper escaping."""
     patterns = {}
     for field in fields:
-        # Normalize field name to NFC form to handle Unicode equivalence
-        normalized_field = unicodedata.normalize('NFC', field)
-        # Escape field name to prevent regex injection and handle special characters
-        escaped_field = re.escape(normalized_field)
-        # Create a pattern that matches the field name followed by a colon and value
-        # Using DOTALL flag to match across multiple lines
-        pattern = rf"{escaped_field}\s*:\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
+        # Handle wildcard patterns
+        if "*" in field:
+            base = field.replace("*", ".*")
+            pattern = rf"{base}\s*[:=]\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
+        else:
+            # Normalize field name to NFC form
+            normalized_field = unicodedata.normalize('NFC', field)
+            escaped_field = re.escape(normalized_field)
+            pattern = rf"{escaped_field}\s*[:=]\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
+        
         patterns[field] = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        
+        # Add patterns for aliases if they exist
+        if aliases and field in aliases:
+            for alias in aliases[field]:
+                alias_pattern = rf"{re.escape(alias)}\s*[:=]\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
+                patterns[f"{field}__{alias}"] = re.compile(alias_pattern, re.IGNORECASE | re.DOTALL)
+    
     return patterns
 
-def redact(text: str, policy: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> str:
+def redact_json(data: Any, policy: Dict[str, Any], result: RedactionResult, path: str = "") -> Any:
+    """Recursively redact sensitive fields in JSON data."""
+    if isinstance(data, dict):
+        redacted = {}
+        for key, value in data.items():
+            current_path = f"{path}.{key}" if path else key
+            
+            # Check if key matches any mask pattern
+            should_mask = False
+            matched_field = None
+            
+            for mask_pattern in policy["mask"]:
+                if "*" in mask_pattern:
+                    if re.match(mask_pattern.replace("*", ".*"), key):
+                        should_mask = True
+                        matched_field = mask_pattern
+                        break
+                elif key.lower() == mask_pattern.lower():
+                    should_mask = True
+                    matched_field = mask_pattern
+                    break
+                
+                # Check aliases
+                if "fieldAliases" in policy and mask_pattern in policy["fieldAliases"]:
+                    for alias in policy["fieldAliases"][mask_pattern]:
+                        if key.lower() == alias.lower():
+                            should_mask = True
+                            matched_field = mask_pattern
+                            break
+
+            if should_mask and matched_field:
+                # Check field-specific conditions if they exist
+                field_conditions = policy.get("fieldConditions", {}).get(matched_field)
+                if field_conditions:
+                    if not evaluate({"conditions": field_conditions}, data):
+                        redacted[key] = value
+                        continue
+
+                redacted[key] = "[REDACTED]"
+                result.add_audit_entry(
+                    matched_field,
+                    "Field masked by policy",
+                    str(value),
+                    context={"path": current_path}
+                )
+            else:
+                redacted[key] = redact_json(value, policy, result, current_path)
+        return redacted
+    elif isinstance(data, list):
+        return [redact_json(item, policy, result, f"{path}[{i}]") for i, item in enumerate(data)]
+    else:
+        return data
+
+def redact_text(text: str, policy: Dict[str, Any], result: RedactionResult) -> str:
+    """Redact sensitive fields in plain text with line-by-line tracking."""
+    patterns = create_field_patterns(policy["mask"], policy.get("fieldAliases"))
+    lines = text.splitlines()
+    redacted_lines = []
+    
+    for line_num, line in enumerate(lines, 1):
+        redacted_line = line
+        line_modified = False
+        
+        for field, pattern in patterns.items():
+            matches = pattern.findall(line)
+            if matches:
+                for match in matches:
+                    # Extract the actual field name (without alias suffix)
+                    base_field = field.split("__")[0]
+                    result.add_audit_entry(
+                        base_field,
+                        "Field masked in text",
+                        match,
+                        line_num,
+                        {"line": line.strip()}
+                    )
+                redacted_line = pattern.sub(f"{field.split('__')[0]}: [REDACTED]", redacted_line)
+                line_modified = True
+        
+        redacted_lines.append(redacted_line)
+    
+    return "\n".join(redacted_lines)
+
+def redact(content: str, policy: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> RedactionResult:
     """
-    Redact sensitive fields from text based on policy rules.
+    Redact sensitive fields from content based on policy rules.
     
     Args:
-        text: The input text to redact
+        content: The input content to redact (JSON or text)
         policy: The policy dictionary containing mask rules
         context: Optional context for policy evaluation
         
     Returns:
-        The redacted text if policy is valid and conditions pass,
-        otherwise returns the original text
+        RedactionResult containing redacted content and audit log
         
     Raises:
         RedactionError: If redaction fails for any required field
     """
-    # Validate policy
     if not validate_policy(policy):
-        return text
-    
-    # Evaluate policy conditions if context is provided
+        raise RedactionError("policy", "Invalid policy structure")
+
+    # Create result object
+    result = RedactionResult(content)
+
+    # Evaluate global conditions if context is provided
     if context is not None:
-        result = evaluate(policy, context)
-        if not result.get("status", False):
-            return text
-    
-    # Normalize text to NFC form and sanitize control characters
-    # This ensures consistent matching and prevents regex issues
-    normalized_text = unicodedata.normalize('NFC', text)
-    sanitized_text = sanitize_control_chars(normalized_text)
-    
-    # Create patterns for each field to mask
-    patterns = create_field_patterns(policy["mask"])
-    
-    # Apply redaction to each field with error checking
-    redacted_text = sanitized_text
-    for field, pattern in patterns.items():
-        # Check if field exists in text before attempting redaction
-        if not pattern.search(redacted_text):
-            raise RedactionError(field, "Field not found in input text")
-        
-        # Replace each match with [REDACTED]
-        redacted_text = pattern.sub(f"{field}: [REDACTED]", redacted_text)
-        
-        # Verify redaction was successful
-        if pattern.search(redacted_text):
-            raise RedactionError(field, "Redaction failed - field still present after masking")
-    
-    return redacted_text 
+        eval_result = evaluate(policy, context)
+        if not eval_result.get("status", False):
+            return result  # Policy condition not met — no redaction
+
+    # Detect format and apply appropriate redaction
+    is_json, parsed_json = detect_format(content)
+    result.is_json = is_json
+
+    if is_json and parsed_json is not None:
+        try:
+            redacted_json = redact_json(parsed_json, policy, result)
+            result.content = json.dumps(redacted_json)
+        except Exception as e:
+            # Fall back to text redaction if JSON processing fails
+            result.content = redact_text(content, policy, result)
+            result.add_audit_entry("system", f"JSON redaction failed, fell back to text: {str(e)}")
+    else:
+        result.content = redact_text(content, policy, result)
+
+    return result

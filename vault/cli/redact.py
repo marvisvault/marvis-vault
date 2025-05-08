@@ -3,13 +3,16 @@ Redact command for masking sensitive data.
 """
 
 import sys
+import json
 from pathlib import Path
-from typing import Optional, TextIO
+from typing import Optional, TextIO, Dict, Any
 import typer
 from rich.console import Console
 from rich.prompt import Confirm
-from ..engine.policy_engine import evaluate
-import re
+from rich.table import Table
+from rich.panel import Panel
+from ..sdk.redact import redact as sdk_redact
+from ..sdk.redact import validate_policy, RedactionResult
 
 app = typer.Typer()
 console = Console()
@@ -20,8 +23,15 @@ def read_input(input_path: Optional[Path]) -> str:
         return input_path.read_text()
     return sys.stdin.read()
 
-def write_output(content: str, output_path: Optional[Path], force: bool = False) -> None:
+def write_output(result: RedactionResult, output_path: Optional[Path], force: bool = False, pretty: bool = True) -> None:
     """Write output to file or stdout."""
+    content = result.content
+    if result.is_json and pretty:
+        try:
+            content = json.dumps(json.loads(content), indent=2)
+        except json.JSONDecodeError:
+            pass
+
     if output_path:
         if output_path.exists() and not force:
             if not Confirm.ask(f"File {output_path} exists. Overwrite?"):
@@ -31,22 +41,72 @@ def write_output(content: str, output_path: Optional[Path], force: bool = False)
     else:
         sys.stdout.write(content)
 
-def redact_text(text: str, fields_to_mask: list[str]) -> str:
-    """Apply redaction to text while preserving formatting."""
-    # Split text into lines to preserve formatting
-    lines = text.splitlines()
-    redacted_lines = []
-    
-    for line in lines:
-        # For each field to mask, replace its value with [REDACTED]
-        redacted_line = line
-        for field in fields_to_mask:
-            # Simple pattern matching - can be enhanced based on requirements
-            pattern = f"{field}[:=]\\s*[^\\s,;]+"
-            redacted_line = re.sub(pattern, f"{field}: [REDACTED]", redacted_line)
-        redacted_lines.append(redacted_line)
-    
-    return "\n".join(redacted_lines)
+def write_audit_log(result: RedactionResult, audit_path: Path, force: bool = False) -> None:
+    """Write audit log to file with rich formatting."""
+    if audit_path.exists() and not force:
+        if not Confirm.ask(f"Audit log {audit_path} exists. Overwrite?"):
+            console.print("[yellow]Audit logging cancelled[/yellow]")
+            return
+
+    try:
+        # Create a summary table
+        table = Table(title="Redaction Summary")
+        table.add_column("Field", style="cyan")
+        table.add_column("Occurrences", style="green")
+        table.add_column("First Line", style="yellow")
+        table.add_column("Last Line", style="yellow")
+
+        # Group audit entries by field
+        field_stats = {}
+        for entry in result.audit_log:
+            field = entry["field"]
+            if field not in field_stats:
+                field_stats[field] = {
+                    "count": 0,
+                    "first_line": float('inf'),
+                    "last_line": 0
+                }
+            stats = field_stats[field]
+            stats["count"] += 1
+            if entry.get("line_number"):
+                stats["first_line"] = min(stats["first_line"], entry["line_number"])
+                stats["last_line"] = max(stats["last_line"], entry["line_number"])
+
+        # Add rows to table
+        for field, stats in field_stats.items():
+            table.add_row(
+                field,
+                str(stats["count"]),
+                str(stats["first_line"]) if stats["first_line"] != float('inf') else "N/A",
+                str(stats["last_line"]) if stats["last_line"] != 0 else "N/A"
+            )
+
+        # Write detailed audit log
+        audit_data = {
+            "summary": {
+                "total_fields_redacted": len(result.redacted_fields),
+                "total_occurrences": len(result.audit_log),
+                "timestamp": result.timestamp,
+                "format": "JSON" if result.is_json else "Text"
+            },
+            "field_statistics": field_stats,
+            "detailed_log": result.audit_log,
+            "line_mapping": result.line_mapping
+        }
+
+        # Write to file
+        audit_path.write_text(json.dumps(audit_data, indent=2))
+
+        # Print summary to console
+        console.print("\n[bold]Redaction Summary:[/bold]")
+        console.print(table)
+        console.print(f"\nTotal fields redacted: {len(result.redacted_fields)}")
+        console.print(f"Total occurrences: {len(result.audit_log)}")
+        console.print(f"Format: {'JSON' if result.is_json else 'Text'}")
+        console.print(f"Audit log written to: {audit_path}")
+
+    except Exception as e:
+        console.print(f"[yellow]Warning: Failed to write audit log: {str(e)}[/yellow]")
 
 @app.command()
 def redact(
@@ -79,38 +139,62 @@ def redact(
         dir_okay=False,
         writable=True,
     ),
+    audit: Optional[Path] = typer.Option(
+        None,
+        "--audit",
+        "-a",
+        help="Audit log file path. If not provided, no audit log is written.",
+        file_okay=True,
+        dir_okay=False,
+        writable=True,
+    ),
     force: bool = typer.Option(
         False,
         "--force",
         "-f",
-        help="Force overwrite of output file if it exists.",
+        help="Force overwrite of output files if they exist.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Output in compact JSON format.",
     ),
 ) -> None:
     """
-    Redact sensitive information from input text based on policy rules.
+    Redact sensitive information from input based on policy rules.
     
-    The input can be read from a file or stdin, and the output can be written
-    to a file or stdout. The policy file determines which fields should be redacted.
+    The input can be JSON or plain text, read from a file or stdin.
+    The output can be written to a file or stdout, with optional audit logging.
+    The policy file determines which fields should be redacted and under what conditions.
     """
     try:
+        # Read and parse policy
+        try:
+            policy_content = json.loads(policy.read_text())
+        except json.JSONDecodeError:
+            console.print("[red]Error: Policy file must be valid JSON[/red]")
+            sys.exit(1)
+        
+        if not validate_policy(policy_content):
+            console.print("[red]Error: Invalid policy structure[/red]")
+            sys.exit(1)
+        
         # Read input
-        input_text = read_input(input)
-        
-        # Create context from input text
-        context = {}
-        for line in input_text.splitlines():
-            if ":" in line:
-                key, value = line.split(":", 1)
-                context[key.strip()] = value.strip()
-        
-        # Evaluate policy
-        result = evaluate(context, str(policy))
+        input_content = read_input(input)
         
         # Apply redaction
-        redacted_text = redact_text(input_text, result.fields)
+        try:
+            result = sdk_redact(input_content, policy_content)
+        except Exception as e:
+            console.print(f"[red]Error during redaction: {str(e)}[/red]")
+            sys.exit(1)
         
         # Write output
-        write_output(redacted_text, output, force)
+        write_output(result, output, force, not json_output)
+        
+        # Write audit log if requested
+        if audit:
+            write_audit_log(result, audit, force)
         
     except Exception as e:
         console.print(f"[red]Error: {str(e)}[/red]")
