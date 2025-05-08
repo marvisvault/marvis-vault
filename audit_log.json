@@ -1,11 +1,16 @@
 {
   "summary": {
-    "total_fields_redacted": 2,
-    "total_occurrences": 2,
-    "timestamp": "2025-05-08T04:39:26.639186",
+    "total_fields_redacted": 3,
+    "total_occurrences": 3,
+    "timestamp": "2025-05-08T08:02:48.414119+00:00",
     "format": "Text"
   },
   "field_statistics": {
+    "system": {
+      "count": 1,
+      "first_line": null,
+      "last_line": null
+    },
     "email": {
       "count": 1,
       "first_line": 3,
@@ -19,7 +24,7 @@
   },
   "detailed_log": [
     {
-      "timestamp": "2025-05-08T04:39:26.639186",
+      "timestamp": "2025-05-08T08:02:48.414119+00:00",
       "field": "email",
       "reason": "Field masked in text",
       "original_value": "john.doe@example.com",
@@ -29,7 +34,7 @@
       }
     },
     {
-      "timestamp": "2025-05-08T04:39:26.639186",
+      "timestamp": "2025-05-08T08:02:48.414119+00:00",
       "field": "phone",
       "reason": "Field masked in text",
       "original_value": "+1-555-123-4567",
@@ -37,12 +42,20 @@
       "context": {
         "line": "phone: +1-555-123-4567"
       }
+    },
+    {
+      "timestamp": "2025-05-08T08:02:48.414119+00:00",
+      "field": "system",
+      "reason": "JSON redaction failed, fell back to text: malformed JSON input",
+      "original_value": "User Information:\nname: John Doe\nemail: john.doe@example.com\nssn: 123-45-6789\ndob: 1990-01-01\nphone: +1-555-123-4567\nrole: admin\ntrustScore: 85\ndepartment: IT ",
+      "line_number": null,
+      "context": null
     }
   ],
   "line_mapping": {
     "3": [
       {
-        "timestamp": "2025-05-08T04:39:26.639186",
+        "timestamp": "2025-05-08T08:02:48.414119+00:00",
         "field": "email",
         "reason": "Field masked in text",
         "original_value": "john.doe@example.com",
@@ -54,7 +67,7 @@
     ],
     "6": [
       {
-        "timestamp": "2025-05-08T04:39:26.639186",
+        "timestamp": "2025-05-08T08:02:48.414119+00:00",
         "field": "phone",
         "reason": "Field masked in text",
         "original_value": "+1-555-123-4567",

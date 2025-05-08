@@ -13,9 +13,38 @@ from rich.table import Table
 from rich.panel import Panel
 from ..sdk.redact import redact as sdk_redact
 from ..sdk.redact import validate_policy, RedactionResult
-
+from datetime import datetime, timezone
 app = typer.Typer()
 console = Console()
+
+def attach_stream_logger(result: RedactionResult, stream_log: Path):
+    """Attach a JSONL stream writer to the result object."""
+    stream_log.parent.mkdir(parents=True, exist_ok=True)
+    log_file = stream_log.open("a", encoding="utf-8")
+    print(f"[debug] Opened stream log: {stream_log.resolve()}")
+
+
+    def stream_hook(field, reason, value=None, line_number=None, context=None):
+        entry = {
+            "timestamp": result.timestamp,
+            "field": field,
+            "reason": reason,
+            "original_value": value,
+            "line_number": line_number,
+            "context": context
+        }
+        print(f"[debug] Writing stream entry: {entry}")
+        log_file.write(json.dumps(entry) + "\n")
+        log_file.flush()  # Ensure immediate write
+
+    original_add = result.add_audit_entry
+
+    def patched_add(*args, **kwargs):
+        original_add(*args, **kwargs)
+        stream_hook(*args, **kwargs)
+
+    result.add_audit_entry = patched_add
+    return log_file
 
 def read_input(input_path: Optional[Path]) -> str:
     """Read input from file or stdin."""
@@ -165,6 +194,15 @@ def redact(
         "--json",
         help="Output in compact JSON format.",
     ),
+    stream_log: Optional[Path] = typer.Option(
+        None,
+        "--stream-log",
+        "-l",
+        help="Write each audit event to a streaming JSONL log file.",
+        file_okay=True,
+        dir_okay=False,
+        writable=True,
+    ),
 ) -> None:
     """
     Redact sensitive information from input based on policy rules.
@@ -187,10 +225,16 @@ def redact(
         
         # Read input
         input_content = read_input(input)
-        
-        # Apply redaction
+        log_file = None
+
+        # Prepare RedactionResult and optionally attach streaming logger
+        result = RedactionResult(input_content)
+        if stream_log:
+            log_file = attach_stream_logger(result, stream_log)
+
+        # Apply redaction using pre-constructed result
         try:
-            result = sdk_redact(input_content, policy_content)
+            sdk_redact(input_content, policy_content, result=result)
         except Exception as e:
             console.print(f"[red]Error during redaction: {str(e)}[/red]")
             sys.exit(1)
@@ -205,6 +249,8 @@ def redact(
     except Exception as e:
         console.print(f"[red]Error: {str(e)}[/red]")
         sys.exit(1)
-
+    finally:
+        if log_file:
+            log_file.close()
 if __name__ == "__main__":
     app() 

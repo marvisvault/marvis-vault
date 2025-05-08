@@ -219,26 +219,36 @@ def redact_text(text: str, policy: Dict[str, Any], result: RedactionResult) -> s
     
     return "\n".join(redacted_lines)
 
-def redact(content: str, policy: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> RedactionResult:
+def redact(content: str, policy: Dict[str, Any], context: Optional[Dict[str, Any]] = None, result: Optional[RedactionResult] = None) -> RedactionResult:
     """
     Redact sensitive fields from content based on policy rules.
-    
+
     Args:
         content: The input content to redact (JSON or text)
         policy: The policy dictionary containing mask rules
         context: Optional context for policy evaluation
-        
+        result: Optional pre-constructed RedactionResult for external audit stream injection
+
     Returns:
         RedactionResult containing redacted content and audit log
-        
+
     Raises:
         RedactionError: If redaction fails for any required field
     """
     if not validate_policy(policy):
         raise RedactionError("policy", "Invalid policy structure")
 
-    # Create result object
-    result = RedactionResult(content)
+    # Use the passed-in result or create a new one
+    if result is None:
+        result = RedactionResult(content)
+    else:
+        # Reset relevant fields to ensure clean processing
+        result.content = content
+        result.is_json = False
+        result.audit_log.clear()
+        result.redacted_fields.clear()
+        result.line_mapping.clear()
+        result.timestamp = datetime.now(timezone.utc).isoformat()
 
     # Evaluate global conditions if context is provided
     if context is not None:
@@ -255,15 +265,11 @@ def redact(content: str, policy: Dict[str, Any], context: Optional[Dict[str, Any
             redacted_json = redact_json(parsed_json, policy, result)
             result.content = json.dumps(redacted_json)
         except Exception as e:
-            # Fall back to text redaction if JSON processing fails
             result.content = redact_text(content, policy, result)
             result.add_audit_entry("system", f"JSON redaction failed, fell back to text: {str(e)}")
     else:
         result.content = redact_text(content, policy, result)
-        result.add_audit_entry(
-            "system",
-            "JSON redaction failed, fell back to text: malformed JSON input",
-            content
-        )
+        result.add_audit_entry("system", "JSON redaction failed, fell back to text: malformed JSON input", content)
 
     return result
+
