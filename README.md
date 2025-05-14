@@ -76,10 +76,9 @@ vault lint --policy policies/healthcare.yaml
 
 ## 📚 Docs
 
-- [Quickstart](https://docs.marvisvault.com/quickstart)
-- [Policy Format](https://docs.marvisvault.com/policy-format)
-- [SDK Usage](https://docs.marvisvault.com/sdk-usage)
-- [Roadmap](https://docs.marvisvault.com/roadmap)
+- [Quickstart](docs/00_quickstart.md)
+- [CLI Interface](docs/02_cli_interface_.md)
+- [Tutorial Start](docs/01_index.md)
 
 ---
 
@@ -105,7 +104,7 @@ vault lint --policy policies/healthcare.yaml
 ## 🧩 Contributing
 
 Pull requests welcome!  
-Check out the [roadmap](https://docs.marvisvault.com/roadmap) and open issues — or suggest your own.
+Open issues — or suggest your own on GitHub.
 
 ---
 

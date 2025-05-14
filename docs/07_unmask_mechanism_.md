@@ -1,6 +1,6 @@
 # Chapter 6: Unmask Mechanism
 
-In [Chapter 5: Redaction System](05_redaction_system_.md), we learned how Marvis Vault hides sensitive information. But what happens when an authorized user actually needs to see that hidden data? That's where the **Unmask Mechanism** comes in.
+In [Chapter 5: Redaction System](06_redaction_system_.md), we learned how Marvis Vault hides sensitive information. But what happens when an authorized user actually needs to see that hidden data? That's where the **Unmask Mechanism** comes in.
 
 ## Introduction: The Declassification Officer
 
@@ -241,9 +241,9 @@ if is_authorized(user_role):
 
 This approach adds another layer of security to the unmasking process.
 
-## Integration with the [Policy Engine](03_policy_engine_.md)
+## Integration with the [Policy Engine](04_policy_engine_.md)
 
-The Unmask Mechanism works closely with the [Policy Engine](03_policy_engine_.md) we learned about earlier:
+The Unmask Mechanism works closely with the [Policy Engine](04_policy_engine_.md) we learned about earlier:
 
 ```python
 # Check complex conditions using the Policy Engine
@@ -261,7 +261,7 @@ This integration ensures that unmasking follows all the complex conditions defin
 
 ## Conclusion
 
-The Unmask Mechanism is the counterpart to the [Redaction System](05_redaction_system_.md), allowing authorized users to access sensitive information when needed. It checks role permissions, finds redacted fields, and restores original values based on your policy rules.
+The Unmask Mechanism is the counterpart to the [Redaction System](06_redaction_system_.md), allowing authorized users to access sensitive information when needed. It checks role permissions, finds redacted fields, and restores original values based on your policy rules.
 
 In this chapter, we've learned:
 - How the Unmask Mechanism acts like a declassification officer
@@ -270,6 +270,6 @@ In this chapter, we've learned:
 - How the system finds and replaces redacted fields
 - Different patterns for managing original values securely
 
-Now that you understand how information can be both redacted and revealed, let's move on to see how all these actions are tracked in the next chapter: [Audit System](07_audit_system_.md).
+Now that you understand how information can be both redacted and revealed, let's move on to see how all these actions are tracked in the next chapter: [Audit System](08_audit_system_.md).
 
 ---

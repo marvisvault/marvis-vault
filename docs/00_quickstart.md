@@ -1,6 +1,6 @@
-# Chapter 7: CLI Interface
+# Marvis Vault OSS CLI Quick Start
 
-In [Chapter 6: Audit System](06_audit_system_.md), we learned how to track and analyze data access in our application. Now, let's explore how to interact with all these powerful features through the **CLI Interface** - your command center for the marvis-vault-oss toolkit!
+Let's explore how to interact with all these powerful features through the **CLI Interface** - your command center for the marvis-vault-oss toolkit!
 
 ## Introduction: What is the CLI Interface?
 
@@ -368,6 +368,6 @@ In this chapter, we've learned:
 - How the CLI works internally to route commands and handle errors
 - Best practices for using the CLI effectively
 
-You now have a solid understanding of the Quickstart! If you want to learn more go to [Tutorial](index.md).
+You now have a solid understanding of the Quickstart! If you want to learn more go to [Tutorial](01_index.md).
 
 ---

@@ -1,6 +1,6 @@
 # Chapter 3: Policy Engine
 
-In [Chapter 2: Policy Definition](02_policy_definition_.md), we learned how to create rulebooks (policies) that specify what data needs protection and who can access it. Now, let's explore the component that brings these rules to life: the **Policy Engine**.
+In [Chapter 2: Policy Definition](03_policy_definition_.md), we learned how to create rulebooks (policies) that specify what data needs protection and who can access it. Now, let's explore the component that brings these rules to life: the **Policy Engine**.
 
 ## Introduction: The Security Guard for Your Data
 
@@ -309,6 +309,6 @@ In this chapter, we've learned:
 - How the engine works under the hood
 - Common use cases and debugging techniques
 
-Now that you understand how the Policy Engine makes decisions, let's dive deeper into how it evaluates specific conditions in the next chapter: [Condition Evaluator](04_condition_evaluator_.md).
+Now that you understand how the Policy Engine makes decisions, let's dive deeper into how it evaluates specific conditions in the next chapter: [Condition Evaluator](05_condition_evaluator_.md).
 
 ---

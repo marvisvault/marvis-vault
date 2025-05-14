@@ -1,6 +1,6 @@
 # Chapter 7: Audit System
 
-In [Chapter 6: Unmask Mechanism](06_unmask_mechanism_.md), we learned how authorized users can access hidden information. But how do we keep track of who accessed what data, and why? This is where the **Audit System** comes in.
+In [Chapter 6: Unmask Mechanism](07_unmask_mechanism_.md), we learned how authorized users can access hidden information. But how do we keep track of who accessed what data, and why? This is where the **Audit System** comes in.
 
 ## Introduction: Your Data Access Ledger
 
@@ -225,7 +225,7 @@ To get the most out of the Audit System:
 
 ## Integrating with the Policy Engine
 
-The Audit System works well with the [Policy Engine](03_policy_engine_.md) we learned about earlier:
+The Audit System works well with the [Policy Engine](04_policy_engine_.md) we learned about earlier:
 
 ```python
 # First, evaluate policy
@@ -256,6 +256,6 @@ In this chapter, we've learned:
 
 With a robust Audit System in place, you can confidently provide access to sensitive data while maintaining control and visibility over how it's used. You now have a solid understanding of the current OSS! Now you are fully prepped to go build!
 
-Go back to [Tutorial Start](index.md) or [Quick Start](quickstart.md)
+Go back to [Tutorial Start](01_index.md) or [Quick Start](00_quickstart.md)
 
 ---

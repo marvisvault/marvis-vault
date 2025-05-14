@@ -1,6 +1,6 @@
 # Chapter 4: Condition Evaluator
 
-In [Chapter 3: Policy Engine](03_policy_engine_.md), we learned how the Policy Engine acts as a security guard for your data, using policies to decide what information to reveal. But how does it understand and evaluate the conditions in your policies? That's where the **Condition Evaluator** comes in.
+In [Chapter 3: Policy Engine](04_policy_engine_.md), we learned how the Policy Engine acts as a security guard for your data, using policies to decide what information to reveal. But how does it understand and evaluate the conditions in your policies? That's where the **Condition Evaluator** comes in.
 
 ## Introduction: The Judge of Your Data Access Rules
 
@@ -338,7 +338,7 @@ In this chapter, we've learned:
 - How conditions are tokenized and evaluated
 - Common patterns and potential pitfalls
 
-Now that you understand how conditions are evaluated, let's move on to the next component: the [Redaction System](05_redaction_system_.md), which actually applies the masking to your sensitive data based on these condition evaluations.
+Now that you understand how conditions are evaluated, let's move on to the next component: the [Redaction System](06_redaction_system_.md), which actually applies the masking to your sensitive data based on these condition evaluations.
 
 ---
 

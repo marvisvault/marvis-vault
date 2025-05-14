@@ -2,7 +2,7 @@
 
 ## Introduction: Your Data Protection Rulebook
 
-In [Chapter 1: CLI Interface](01_cli_interface_.md), we learned how to interact with Marvis Vault using commands. Now, let's dive into what makes those commands work: **Policy Definitions**.
+In [Chapter 1: CLI Interface](02_cli_interface_.md), we learned how to interact with Marvis Vault using commands. Now, let's dive into what makes those commands work: **Policy Definitions**.
 
 Think of a policy definition as a rulebook that tells Marvis Vault exactly what data needs protection, who can see it, and under what conditions. Just like a security guard needs clear instructions about who to let into a building, Marvis Vault needs precise rules about what information to keep private.
 
@@ -323,6 +323,6 @@ In this chapter, we've learned:
 - How policies work behind the scenes
 - How to avoid common policy definition mistakes
 
-Policy definitions are the foundation of data protection in Marvis Vault. They define what data needs protection and who can access it under what circumstances. In the next chapter, [Policy Engine](03_policy_engine_.md), we'll learn how these policies are actually applied to your data to make decisions about masking and unmasking information.
+Policy definitions are the foundation of data protection in Marvis Vault. They define what data needs protection and who can access it under what circumstances. In the next chapter, [Policy Engine](04_policy_engine_.md), we'll learn how these policies are actually applied to your data to make decisions about masking and unmasking information.
 
 ---

@@ -34,13 +34,13 @@ flowchart TD
 
 ## Chapters
 
-1. [CLI Interface](01_cli_interface_.md)
-2. [Policy Definition](02_policy_definition_.md)
-3. [Policy Engine](03_policy_engine_.md)
-4. [Condition Evaluator](04_condition_evaluator_.md)
-5. [Redaction System](05_redaction_system_.md)
-6. [Unmask Mechanism](06_unmask_mechanism_.md)
-7. [Audit System](07_audit_system_.md)
+1. [CLI Interface](02_cli_interface_.md)
+2. [Policy Definition](03_policy_definition_.md)
+3. [Policy Engine](04_policy_engine_.md)
+4. [Condition Evaluator](05_condition_evaluator_.md)
+5. [Redaction System](06_redaction_system_.md)
+6. [Unmask Mechanism](07_unmask_mechanism_.md)
+7. [Audit System](08_audit_system_.md)
 
-#### ---> [Quick Start](quickstart.md)
+#### ---> [Quick Start](00_quickstart.md)
 ---

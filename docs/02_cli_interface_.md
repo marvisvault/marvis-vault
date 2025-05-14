@@ -242,6 +242,6 @@ In this chapter, we've learned:
 - How to redact sensitive information using the CLI
 - How the CLI works internally
 
-Now that you understand how to interact with Marvis Vault through the CLI, we can move on to learning about how to define policies in the next chapter: [Policy Definition](02_policy_definition_.md).
+Now that you understand how to interact with Marvis Vault through the CLI, we can move on to learning about how to define policies in the next chapter: [Policy Definition](03_policy_definition_.md).
 
 ---

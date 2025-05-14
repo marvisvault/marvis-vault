@@ -1,6 +1,6 @@
 # Chapter 5: Redaction System
 
-In [Chapter 4: Condition Evaluator](04_condition_evaluator_.md), we learned how Marvis Vault evaluates conditions to make access decisions. Now, let's explore what happens after those decisions are made: how sensitive information actually gets masked.
+In [Chapter 4: Condition Evaluator](05_condition_evaluator_.md), we learned how Marvis Vault evaluates conditions to make access decisions. Now, let's explore what happens after those decisions are made: how sensitive information actually gets masked.
 
 ## Introduction: Your Personal Document Censor
 
@@ -107,7 +107,7 @@ The system is smart enough to recognize field patterns in plain text too!
 
 ### 3. Using the CLI for Redaction
 
-You can also use the command line interface we learned about in [Chapter 1: CLI Interface](01_cli_interface_.md):
+You can also use the command line interface we learned about in [Chapter 1: CLI Interface](02_cli_interface_.md):
 
 ```bash
 vault redact --input patient_data.json --policy privacy_policy.json --output safe_data.json
@@ -311,6 +311,6 @@ In this chapter, we've learned:
 - How the system handles different content formats
 - Advanced features like field aliases and field-specific conditions
 
-Now that you understand how information is redacted, the next chapter will explore how authorized users can access that hidden information through the [Unmask Mechanism](06_unmask_mechanism_.md).
+Now that you understand how information is redacted, the next chapter will explore how authorized users can access that hidden information through the [Unmask Mechanism](07_unmask_mechanism_.md).
 
 ---
