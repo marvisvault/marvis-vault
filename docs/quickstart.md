@@ -368,6 +368,6 @@ In this chapter, we've learned:
 - How the CLI works internally to route commands and handle errors
 - Best practices for using the CLI effectively
 
-You now have a solid understanding of the current CLI Interface! Now you are fully prepped to go build!
+You now have a solid understanding of the Quickstart! If you want to learn more go to [Tutorial](index.md).
 
 ---

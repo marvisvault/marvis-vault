@@ -254,6 +254,8 @@ In this chapter, we've learned:
 - How trust reports help identify unusual patterns
 - Best practices for effective auditing
 
-With a robust Audit System in place, you can confidently provide access to sensitive data while maintaining control and visibility over how it's used. In the next chapter, we'll explore the [PocketFlow Framework](08_pocketflow_framework_.md), which helps automate complex data workflows while maintaining security.
+With a robust Audit System in place, you can confidently provide access to sensitive data while maintaining control and visibility over how it's used. You now have a solid understanding of the current OSS! Now you are fully prepped to go build!
+
+Go back to [Tutorial Start](index.md) or [Quick Start](quickstart.md)
 
 ---
