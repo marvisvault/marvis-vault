@@ -103,7 +103,7 @@ vault lint --policy policies/healthcare.yaml
 
 ## 🧩 Contributing
 Pull requests welcome!
-See CONTRIBUTING.md and open issues — or suggest your own.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and open issues — or suggest your own.
 
 By contributing, you agree your code may be used in both open-source and commercial offerings under the repository's license.
 
