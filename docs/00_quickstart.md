@@ -1,5 +1,7 @@
 # Marvis Vault OSS CLI Quick Start
 
+> Before you start check out our [Local Setup Guide](../SETUP.md)
+
 Let's explore how to interact with all these powerful features through the **CLI Interface** - your command center for the marvis-vault-oss toolkit!
 
 ## Introduction: What is the CLI Interface?

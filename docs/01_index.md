@@ -1,6 +1,10 @@
-# Tutorial: marvis-vault-oss
+# Marvis Vault OSS CLI: Tutorial
 
-**Marvis Vault** is a programmable compliance infrastructure for AI systems that provides secure handling of sensitive data. It allows developers to **define policies** that govern which fields should be masked, which roles can unmask them, and under what conditions access is granted. The system works by intercepting data, applying redaction rules based on policy evaluation, maintaining detailed audit logs of all access attempts, and providing controlled unmasking capabilities. This creates a *security layer* around sensitive information, enabling AI systems to comply with data protection requirements while maintaining functionality.
+> **Marvis Vault** is a programmable compliance infrastructure for AI systems that provides secure handling of sensitive data. 
+
+It allows developers to **define policies** that govern which fields should be masked, which roles can unmask them, and under what conditions access is granted. 
+
+The system works by intercepting data, applying redaction rules based on policy evaluation, maintaining detailed audit logs of all access attempts, and providing controlled unmasking capabilities. This creates a ***security layer*** around sensitive information, enabling AI systems to comply with data protection requirements while maintaining functionality.
 
 
 **Source Repository:** [Marvis Vault OSS CLI](https://github.com/abbybiswas/marvis-vault-oss)
@@ -34,6 +38,7 @@ flowchart TD
 
 ## Chapters
 
+0. [Local Setup](../SETUP.md)
 1. [CLI Interface](02_cli_interface_.md)
 2. [Policy Definition](03_policy_definition_.md)
 3. [Policy Engine](04_policy_engine_.md)

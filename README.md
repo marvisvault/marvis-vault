@@ -11,7 +11,7 @@ Redact, simulate, and audit sensitive data — with policies, trustScore, and ro
 
 Built for teams using LLMs, agents, and AI-native workflows.
 
-[ Read the Docs](https://docs.marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🌐 marvisvault.com](https://marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🚀 Apply for Vault Plus](https://tally.so/r/3XNBgP)
+[ Read the Docs](./docs/01_index.md) &nbsp;&nbsp;&nbsp;&nbsp;[🌐 marvisvault.com](https://marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🚀 Apply for Vault Plus](https://tally.so/r/3XNBgP)
 
 ---
 
@@ -33,6 +33,8 @@ git clone https://github.com/abbybiswas/marvis-vault-oss.git
 cd marvis-vault-oss
 pip install -e .
 ```
+Note: Please go to [Local Setup Guide](SETUP.md) if you have issues to make sure your enviroment is setup properly before running `pip install -e .` 
+
 ## 🖥️ CLI Usage
 
 ```bash
