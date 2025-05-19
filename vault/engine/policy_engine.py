@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel
 
-from .condition_evaluator import evaluate_condition
+from .condition_evaluator import evaluate_condition, InvalidConditionError
 from .policy_parser import parse_policy
 
 class EvaluationResult(BaseModel):
@@ -14,6 +14,7 @@ class EvaluationResult(BaseModel):
     success: bool
     reason: str
     fields: List[str] = []
+    skipped_conditions: List[str] = []
 
 def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
     """
@@ -37,18 +38,35 @@ def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
             fields=policy.mask
         )
     
+    # Track skipped conditions
+    skipped_conditions = []
+    
     # Evaluate conditions
     for condition in policy.conditions:
-        success, explanation = evaluate_condition(condition, context)
-        if not success:
+        try:
+            success, explanation = evaluate_condition(condition, context)
+            if not success:
+                return EvaluationResult(
+                    success=False,
+                    reason=f"Condition failed: {explanation}",
+                    fields=policy.mask,
+                    skipped_conditions=skipped_conditions
+                )
+        except InvalidConditionError as e:
+            # Log warning and skip invalid condition
+            skipped_conditions.append(f"Skipped invalid condition '{condition}': {str(e)}")
+            continue
+        except Exception as e:
             return EvaluationResult(
                 success=False,
-                reason=f"Condition failed: {explanation}",
-                fields=policy.mask
+                reason=f"Error evaluating condition '{condition}': {str(e)}",
+                fields=policy.mask,
+                skipped_conditions=skipped_conditions
             )
             
     return EvaluationResult(
         success=True,
         reason="All conditions passed",
-        fields=[]  # No fields to mask when successful
+        fields=[],  # No fields to mask when successful
+        skipped_conditions=skipped_conditions
     ) 

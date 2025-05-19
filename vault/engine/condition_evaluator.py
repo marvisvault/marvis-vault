@@ -10,14 +10,16 @@ class ConditionValidationError(ValueError):
     """Custom exception for condition validation errors."""
     pass
 
+class InvalidConditionError(ValueError):
+    """Custom exception for invalid or missing conditions."""
+    pass
+
 class CircularReferenceError(ValueError):
-    """Raised when a circular reference is detected in condition evaluation."""
+    """Custom exception for circular references in conditions."""
     def __init__(self, field: str, chain: List[str]):
         self.field = field
         self.chain = chain
-        super().__init__(
-            f"Circular reference detected: {' -> '.join(chain)} -> {field}"
-        )
+        super().__init__(f"Circular reference detected: {' -> '.join(chain + [field])}")
 
 class Operator(Enum):
     """Supported operators for condition evaluation."""
@@ -325,12 +327,25 @@ def evaluate_condition(
         
     Raises:
         CircularReferenceError: If a circular reference is detected
+        InvalidConditionError: If the condition is missing, empty or invalid
         ValueError: If the condition is invalid or context keys are missing
     """
+    # Validate condition
+    if not condition:
+        raise InvalidConditionError("Condition cannot be empty or None")
+    if not isinstance(condition, str):
+        raise InvalidConditionError(f"Condition must be a string, got {type(condition)}")
+    if condition.isspace():
+        raise InvalidConditionError("Condition cannot be whitespace only")
+        
     try:
         tokens = _tokenize(condition)
+        if not tokens:
+            raise InvalidConditionError("Condition produced no valid tokens")
         return _evaluate_expression(tokens, context, visited_fields)
+    except CircularReferenceError:
+        raise
+    except InvalidConditionError:
+        raise
     except Exception as e:
-        if isinstance(e, CircularReferenceError):
-            raise
         raise ValueError(f"Failed to evaluate condition: {str(e)}") 

@@ -9,6 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from rich.text import Text
 from ..engine.policy_engine import evaluate
 
 app = typer.Typer()
@@ -102,6 +103,14 @@ def simulate(
             f"[{'green' if result.success else 'red'}]{result.reason}[/{'green' if result.success else 'red'}]",
             title="Result"
         ))
+        
+        # Display any skipped conditions
+        if result.skipped_conditions:
+            console.print("\n[bold yellow]Warnings[/bold yellow]")
+            warning_table = Table(show_header=False, box=None)
+            for warning in result.skipped_conditions:
+                warning_table.add_row(Text("⚠", style="yellow"), Text(warning, style="yellow"))
+            console.print(warning_table)
         
         # Display masking analysis
         console.print("\n[bold]Masking Analysis[/bold]")
