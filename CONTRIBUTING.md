@@ -16,6 +16,12 @@ This project is open-source and early-stage — we welcome improvements across:
 3. Install: `pip install -e .`  
 4. Run tests: `pytest`
 
+To help you get started, we've prepared comprehensive documentation:
+
+- 📚 [Tutorial & Code Understanding](docs/01_index.md) - Deep dive into how Marvis Vault works
+- 🚀 [Quick Start Guide](docs/00_quickstart.md) - Run your first example in minutes
+- 📋 [GitHub Issues](https://github.com/yourusername/marvis-vault-oss/issues) - Find tasks to work on
+
 ## Guidelines
 
 - Use clear, descriptive commit messages
@@ -28,3 +34,6 @@ This project is open-source and early-stage — we welcome improvements across:
 - You can also suggest new features via the [roadmap](https://docs.marvisvault.com/roadmap)
 
 ---
+## Legal Note
+
+By contributing, you grant the project maintainer full rights to use your contributions in both open-source and commercial versions of Marvis Vault. You retain ownership of your code unless otherwise agreed.

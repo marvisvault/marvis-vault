@@ -370,4 +370,6 @@ In this chapter, we've learned:
 
 You now have a solid understanding of the Quickstart! If you want to learn more go to [Tutorial](01_index.md).
 
+Want to contribute? ➡️ [Start here](../CONTRIBUTING.md)
+
 ---

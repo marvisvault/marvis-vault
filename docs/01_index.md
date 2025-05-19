@@ -43,4 +43,6 @@ flowchart TD
 7. [Audit System](08_audit_system_.md)
 
 #### ---> [Quick Start](00_quickstart.md)
+
+Want to contribute? ➡️ [Start here](../CONTRIBUTING.md)
 ---
