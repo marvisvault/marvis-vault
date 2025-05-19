@@ -123,7 +123,9 @@ This is usually caused by antivirus interference (e.g., Norton Data Protector).
 
 ## 🧩 Next Steps
 
-- [x] Use the `vault` CLI
+- [ ] Read [Quick Start](./docs/00_quickstart.md) to get started
+- [ ] Use the `vault` CLI
+- [ ] Understand the Vault CLI using our [Tutorial Guide](./docs/01_index.md)
 - [ ] Create or customize redaction/audit policies
 - [ ] Extend the CLI with new commands
 - [ ] Contribute improvements or file issues

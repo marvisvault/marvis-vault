@@ -33,7 +33,7 @@ git clone https://github.com/abbybiswas/marvis-vault-oss.git
 cd marvis-vault-oss
 pip install -e .
 ```
-Note: Please go to [Local Setup Guide](SETUP.md) if you have issues to make sure your enviroment is setup properly before running `pip install -e .` 
+> Note: Please go to [Local Setup Guide](SETUP.md) if you have issues to make sure your enviroment is setup properly before running `pip install -e .` 
 
 ## 🖥️ CLI Usage
 
