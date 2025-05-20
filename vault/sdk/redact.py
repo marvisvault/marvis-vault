@@ -27,6 +27,8 @@ class RedactionResult:
         """Add an entry to the audit log with line number and context."""
         entry = {
             "timestamp": self.timestamp,
+            "action": "redact", 
+            "role": "user",
             "field": field,
             "reason": reason,
             "original_value": value,

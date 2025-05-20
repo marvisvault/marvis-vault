@@ -148,14 +148,14 @@ def _tokenize(condition: str) -> list[Token]:
             # Match identifiers, numbers, or strings
             if char.isalpha():
                 # Match identifier - must be full match
-                match = re.fullmatch(r'[a-zA-Z_][a-zA-Z0-9_]*', condition[i:])
+                match = re.match(r'[a-zA-Z_][a-zA-Z0-9_]*', condition[i:])
                 if not match:
                     raise ConditionValidationError(f"Invalid identifier at position {i}")
                 tokens.append(Token(TokenType.VALUE, match.group()))
                 i += len(match.group())
             elif char.isdigit() or char == '-':
                 # Match number - must be full match
-                match = re.fullmatch(r'-?\d+(\.\d+)?', condition[i:])
+                match = re.match(r'-?\d+(\.\d+)?', condition[i:])
                 if not match:
                     raise ConditionValidationError(f"Invalid number at position {i}")
                 tokens.append(Token(TokenType.VALUE, float(match.group())))
@@ -309,6 +309,47 @@ def _evaluate_expression(
                 
     raise ValueError("Invalid expression structure")
 
+# JS-compatible condition fix: Add normalization function
+def normalize_condition(condition: str) -> str:
+    """
+    Normalize JavaScript-style condition syntax to Python-style.
+    
+    Args:
+        condition: The condition string to normalize
+        
+    Returns:
+        str: The normalized condition string
+        
+    Example:
+        "trustScore > 85 && role !== 'auditor'"
+        -> "trustScore > 85 and role != 'auditor'"
+    """
+    if not condition or not isinstance(condition, str):
+        return condition
+        
+    # Save string literals to prevent modifying their contents
+    literals = {}
+    def save_literal(match):
+        key = f"__STR_LIT_{len(literals)}__"
+        literals[key] = match.group(0)
+        return key
+    
+    # Save string literals
+    condition = re.sub(r"'[^']*'|\"[^\"]*\"", save_literal, condition)
+    
+    # Normalize operators
+    condition = re.sub(r'(?<!!)===', '==', condition)  # === to ==
+    condition = re.sub(r'!==', '!=', condition)        # !== to !=
+    condition = re.sub(r'(?<![=!<>])\|\|(?![=|])', ' or ', condition)  # || to or
+    condition = re.sub(r'(?<![=!<>])&&(?![&])', ' and ', condition)    # && to and
+    condition = re.sub(r'(?<![\w!])!(?![=\w])', 'not ', condition)     # ! to not, except !=
+    
+    # Restore string literals
+    for key, value in literals.items():
+        condition = condition.replace(key, value)
+        
+    return condition
+
 def evaluate_condition(
     condition: str, 
     context: Dict[str, Any],
@@ -338,7 +379,10 @@ def evaluate_condition(
     if condition.isspace():
         raise InvalidConditionError("Condition cannot be whitespace only")
         
+    # JS-compatible condition fix: Normalize condition before evaluation
+    original_condition = condition
     try:
+        condition = normalize_condition(condition)
         tokens = _tokenize(condition)
         if not tokens:
             raise InvalidConditionError("Condition produced no valid tokens")
@@ -348,4 +392,5 @@ def evaluate_condition(
     except InvalidConditionError:
         raise
     except Exception as e:
-        raise ValueError(f"Failed to evaluate condition: {str(e)}") 
+        # Include original condition in error message
+        raise ValueError(f"Failed to evaluate condition '{original_condition}': {str(e)}") 
