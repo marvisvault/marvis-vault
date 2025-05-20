@@ -47,7 +47,7 @@ flowchart TD
 6. [Unmask Mechanism](07_unmask_mechanism_.md)
 7. [Audit System](08_audit_system_.md)
 
-#### ---> [Quick Start](00_quickstart.md)
+#### ➡ [Quick Start](00_quickstart.md)
 
-Want to contribute? ➡️ [Start here](../CONTRIBUTING.md)
+#### Want to contribute? ➡ [Start here](../CONTRIBUTING.md)
 ---
