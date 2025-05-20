@@ -1,9 +1,0 @@
-{
-  "roles": [
-    "admin"
-  ],
-  "fields_to_mask": [],
-  "conditions": [],
-  "unmask_role_override": false,
-  "reason": "Role admin is in unmask_roles - skipping condition evaluation"
-}
