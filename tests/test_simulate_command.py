@@ -201,3 +201,62 @@ def test_normalize_condition_edge_cases():
     complex_expr = "(role === 'admin' && !test) || (trustScore > 85 && !blocked)"
     expected = "(role == 'admin' and not test) or (trustScore > 85 and not blocked)"
     assert normalize_condition(complex_expr) == expected 
+
+def test_simulate_regression_js_syntax(tmp_path):
+    """Regression test for JS-style condition syntax with nested context."""
+    # Create agent file
+    agent_data = {
+        "role": "admin",
+        "trustScore": 90,
+        "context": {
+            "department": "IT"
+        }
+    }
+    agent_file = tmp_path / "agent.json"
+    agent_file.write_text(json.dumps(agent_data))
+    
+    # Create policy file
+    policy_data = {
+        "mask": ["ssn"],
+        "unmask_roles": ["admin"],
+        "conditions": [
+            "trustScore > 85 && role !== 'auditor'",
+            "role === 'admin'"
+        ]
+    }
+    policy_file = tmp_path / "policy.json"
+    policy_file.write_text(json.dumps(policy_data))
+    
+    # Run simulate command
+    result = runner.invoke(app, ["simulate", "-a", str(agent_file), "-p", str(policy_file)])
+    
+    # Verify output
+    assert result.exit_code == 0
+    assert "All conditions passed" in result.stdout
+    assert "No fields would be masked" in result.stdout
+    assert "Warnings" not in result.stdout  # No warnings expected
+
+def test_simulate_mixed_condition_failures(temp_agent_file, tmp_path):
+    """Test simulate command with mix of valid and invalid conditions."""
+    policy_data = {
+        "mask": ["ssn"],
+        "unmask_roles": ["admin"],
+        "conditions": [
+            "trustScore > 85 && role !== 'auditor'",  # Valid, should pass
+            "!== invalid syntax",  # Invalid, should be skipped
+            "unknown_field > 10",  # Valid syntax but unknown field
+            "role === 'admin'"  # Valid, should pass
+        ]
+    }
+    policy_file = tmp_path / "policy.json"
+    policy_file.write_text(json.dumps(policy_data))
+    
+    result = runner.invoke(app, ["simulate", "-a", str(temp_agent_file), "-p", str(policy_file)])
+    
+    # Check output formatting
+    assert result.exit_code == 0
+    assert "⚠ Warnings" in result.stdout
+    assert "Skipped invalid condition" in result.stdout
+    assert "Invalid operator at position 0" in result.stdout  # For "!== invalid syntax"
+    assert "Context key 'unknown_field' not found" in result.stdout
+    assert "All conditions passed" in result.stdout  # Valid conditions still pass 

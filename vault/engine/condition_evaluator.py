@@ -29,6 +29,8 @@ class Operator(Enum):
     NOT_EQUALS = auto()
     GREATER_THAN = auto()
     LESS_THAN = auto()
+    GREATER_THAN_OR_EQUAL = auto()  # Added for >=
+    LESS_THAN_OR_EQUAL = auto()     # Added for <=
 
 class TokenType(Enum):
     """Types of tokens in the condition string."""
@@ -77,6 +79,50 @@ def _validate_numeric(value: Any, field_name: str) -> float:
         
     return num_value
 
+def normalize_condition(condition: str) -> str:
+    """
+    Normalize JavaScript-style condition syntax to Python-style.
+    
+    Args:
+        condition: The condition string to normalize
+        
+    Returns:
+        str: The normalized condition string
+        
+    Example:
+        "trustScore > 85 && role !== 'auditor'"
+        -> "trustScore > 85 and role != 'auditor'"
+    """
+    if not condition or not isinstance(condition, str):
+        return condition
+        
+    # Save string literals to prevent modifying their contents
+    literals = {}
+    def save_literal(match):
+        key = f"__STR_LIT_{len(literals)}__"
+        literals[key] = match.group(0)
+        return key
+    
+    # Save string literals
+    condition = re.sub(r"'[^']*'|\"[^\"]*\"", save_literal, condition)
+    
+    # Normalize operators with proper spacing
+    condition = re.sub(r'(?<!!)===', ' == ', condition)  # === to ==
+    condition = re.sub(r'!==', ' != ', condition)        # !== to !=
+    condition = re.sub(r'(?<![=!<>])\|\|(?![=|])', ' or ', condition)  # || to or
+    condition = re.sub(r'(?<![=!<>])&&(?![&])', ' and ', condition)    # && to and
+    condition = re.sub(r'(?<![\w!])!(?![=\w])', 'not ', condition)     # ! to not, except !=
+    
+    # Clean up any double spaces
+    condition = re.sub(r'\s+', ' ', condition)
+    condition = condition.strip()
+    
+    # Restore string literals
+    for key, value in literals.items():
+        condition = condition.replace(key, value)
+        
+    return condition
+
 def _tokenize(condition: str) -> list[Token]:
     """
     Convert condition string into a list of tokens.
@@ -94,6 +140,9 @@ def _tokenize(condition: str) -> list[Token]:
     tokens = []
     i = 0
     
+    # JS-style condition support fix: Normalize condition before tokenizing
+    condition = normalize_condition(condition)
+    
     while i < len(condition):
         if len(tokens) >= MAX_TOKENS:
             raise ConditionValidationError(
@@ -108,20 +157,23 @@ def _tokenize(condition: str) -> list[Token]:
             continue
             
         # Handle operators
-        if char in ['&', '|', '=', '!', '>', '<']:
-            # Check for invalid operator sequences
-            if i + 1 < len(condition):
-                next_char = condition[i + 1]
-                if char in ['>', '<'] and next_char in ['>', '<']:
-                    raise ConditionValidationError(
-                        f"Invalid operator sequence '{char}{next_char}' at position {i}"
-                    )
-                    
-            if i + 1 < len(condition) and condition[i:i+2] == '&&':
+        if char in ['&', '|', '=', '!', '>', '<', 'a', 'o', 'n']:  # Added 'a', 'o', 'n' for 'and', 'or', 'not'
+            # Check for word operators first
+            if condition[i:i+3] == 'and':
                 tokens.append(Token(TokenType.OPERATOR, Operator.AND))
-                i += 2
-            elif i + 1 < len(condition) and condition[i:i+2] == '||':
+                i += 3
+            elif condition[i:i+2] == 'or':
                 tokens.append(Token(TokenType.OPERATOR, Operator.OR))
+                i += 2
+            elif condition[i:i+3] == 'not':
+                tokens.append(Token(TokenType.OPERATOR, Operator.NOT_EQUALS))
+                i += 3
+            # Then check for compound operators
+            elif i + 1 < len(condition) and condition[i:i+2] == '>=':
+                tokens.append(Token(TokenType.OPERATOR, Operator.GREATER_THAN_OR_EQUAL))
+                i += 2
+            elif i + 1 < len(condition) and condition[i:i+2] == '<=':
+                tokens.append(Token(TokenType.OPERATOR, Operator.LESS_THAN_OR_EQUAL))
                 i += 2
             elif i + 1 < len(condition) and condition[i:i+2] == '==':
                 tokens.append(Token(TokenType.OPERATOR, Operator.EQUALS))
@@ -129,6 +181,7 @@ def _tokenize(condition: str) -> list[Token]:
             elif i + 1 < len(condition) and condition[i:i+2] == '!=':
                 tokens.append(Token(TokenType.OPERATOR, Operator.NOT_EQUALS))
                 i += 2
+            # Then check for single-char operators
             elif char == '>':
                 tokens.append(Token(TokenType.OPERATOR, Operator.GREATER_THAN))
                 i += 1
@@ -136,7 +189,13 @@ def _tokenize(condition: str) -> list[Token]:
                 tokens.append(Token(TokenType.OPERATOR, Operator.LESS_THAN))
                 i += 1
             else:
-                raise ConditionValidationError(f"Invalid operator at position {i}")
+                # If it's not an operator, treat it as a potential identifier
+                match = re.match(r'[a-zA-Z_][a-zA-Z0-9_]*', condition[i:])
+                if match:
+                    tokens.append(Token(TokenType.VALUE, match.group()))
+                    i += len(match.group())
+                else:
+                    raise ConditionValidationError(f"Invalid operator at position {i}")
                 
         # Handle parentheses
         elif char in ['(', ')']:
@@ -147,7 +206,7 @@ def _tokenize(condition: str) -> list[Token]:
         else:
             # Match identifiers, numbers, or strings
             if char.isalpha():
-                # Match identifier - must be full match
+                # Match identifier - must start with letter
                 match = re.match(r'[a-zA-Z_][a-zA-Z0-9_]*', condition[i:])
                 if not match:
                     raise ConditionValidationError(f"Invalid identifier at position {i}")
@@ -224,11 +283,32 @@ def _evaluate_expression(
     if not tokens:
         return True, "Empty condition"
         
-    # Handle parentheses
+    # Handle parentheses first
     if tokens[0].type == TokenType.PAREN and tokens[0].value == '(':
         end = _find_matching_paren(tokens, 0)
         if end == len(tokens) - 1:
             return _evaluate_expression(tokens[1:end], context, visited_fields, depth + 1)
+            
+    # Handle AND/OR operations before comparisons
+    for i in range(len(tokens)):
+        if tokens[i].type == TokenType.OPERATOR and tokens[i].value in [Operator.AND, Operator.OR]:
+            # JS-style condition support fix: Evaluate AND/OR before comparisons
+            try:
+                left_result, left_explanation = _evaluate_expression(
+                    tokens[:i], context, visited_fields.copy(), depth + 1
+                )
+                right_result, right_explanation = _evaluate_expression(
+                    tokens[i+1:], context, visited_fields.copy(), depth + 1
+                )
+                
+                if tokens[i].value == Operator.AND:
+                    result = left_result and right_result
+                    return result, f"({left_explanation}) AND ({right_explanation}) is {result}"
+                else:  # OR
+                    result = left_result or right_result
+                    return result, f"({left_explanation}) OR ({right_explanation}) is {result}"
+            except Exception as e:
+                raise ValueError(f"Failed to evaluate {tokens[i].value.name} operation: {str(e)}")
             
     # Handle single value
     if len(tokens) == 1:
@@ -241,7 +321,8 @@ def _evaluate_expression(
             if value in context:
                 visited_fields.add(value)
                 return bool(context[value]), f"Context value '{value}' is {bool(context[value])}"
-            raise ValueError(f"Context key '{value}' not found")
+            # JS-style condition support fix: Better error for missing context keys
+            raise ValueError(f"Context key '{value}' not found in {list(context.keys())}")
         return bool(value), f"Value {value} is {bool(value)}"
         
     # Handle comparison
@@ -258,7 +339,8 @@ def _evaluate_expression(
                 visited_fields.add(left)
                 left = context[left]
             else:
-                raise ValueError(f"Context key '{left}' not found")
+                # JS-style condition support fix: Better error for missing context keys
+                raise ValueError(f"Context key '{left}' not found in {list(context.keys())}")
             
         # Get right value from context if it's a context variable
         if tokens[2].type == TokenType.VALUE and isinstance(right, str):
@@ -267,9 +349,12 @@ def _evaluate_expression(
             if right in context:
                 visited_fields.add(right)
                 right = context[right]
+            else:
+                # JS-style condition support fix: Better error for missing context keys
+                raise ValueError(f"Context key '{right}' not found in {list(context.keys())}")
             
         # Validate numeric comparisons
-        if op in [Operator.GREATER_THAN, Operator.LESS_THAN]:
+        if op in [Operator.GREATER_THAN, Operator.LESS_THAN, Operator.GREATER_THAN_OR_EQUAL, Operator.LESS_THAN_OR_EQUAL]:
             try:
                 left = _validate_numeric(left, tokens[0].value)
                 right = _validate_numeric(right, tokens[2].value)
@@ -289,66 +374,14 @@ def _evaluate_expression(
         elif op == Operator.LESS_THAN:
             result = left < right
             return result, f"{left} < {right} is {result}"
+        elif op == Operator.GREATER_THAN_OR_EQUAL:
+            result = left >= right
+            return result, f"{left} >= {right} is {result}"
+        elif op == Operator.LESS_THAN_OR_EQUAL:
+            result = left <= right
+            return result, f"{left} <= {right} is {result}"
             
-    # Handle AND/OR operations
-    for i in range(len(tokens)):
-        if tokens[i].type == TokenType.OPERATOR and tokens[i].value in [Operator.AND, Operator.OR]:
-            left_result, left_explanation = _evaluate_expression(
-                tokens[:i], context, visited_fields.copy(), depth + 1
-            )
-            right_result, right_explanation = _evaluate_expression(
-                tokens[i+1:], context, visited_fields.copy(), depth + 1
-            )
-            
-            if tokens[i].value == Operator.AND:
-                result = left_result and right_result
-                return result, f"({left_explanation}) AND ({right_explanation}) is {result}"
-            else:  # OR
-                result = left_result or right_result
-                return result, f"({left_explanation}) OR ({right_explanation}) is {result}"
-                
     raise ValueError("Invalid expression structure")
-
-# JS-compatible condition fix: Add normalization function
-def normalize_condition(condition: str) -> str:
-    """
-    Normalize JavaScript-style condition syntax to Python-style.
-    
-    Args:
-        condition: The condition string to normalize
-        
-    Returns:
-        str: The normalized condition string
-        
-    Example:
-        "trustScore > 85 && role !== 'auditor'"
-        -> "trustScore > 85 and role != 'auditor'"
-    """
-    if not condition or not isinstance(condition, str):
-        return condition
-        
-    # Save string literals to prevent modifying their contents
-    literals = {}
-    def save_literal(match):
-        key = f"__STR_LIT_{len(literals)}__"
-        literals[key] = match.group(0)
-        return key
-    
-    # Save string literals
-    condition = re.sub(r"'[^']*'|\"[^\"]*\"", save_literal, condition)
-    
-    # Normalize operators
-    condition = re.sub(r'(?<!!)===', '==', condition)  # === to ==
-    condition = re.sub(r'!==', '!=', condition)        # !== to !=
-    condition = re.sub(r'(?<![=!<>])\|\|(?![=|])', ' or ', condition)  # || to or
-    condition = re.sub(r'(?<![=!<>])&&(?![&])', ' and ', condition)    # && to and
-    condition = re.sub(r'(?<![\w!])!(?![=\w])', 'not ', condition)     # ! to not, except !=
-    
-    # Restore string literals
-    for key, value in literals.items():
-        condition = condition.replace(key, value)
-        
-    return condition
 
 def evaluate_condition(
     condition: str, 
@@ -379,11 +412,14 @@ def evaluate_condition(
     if condition.isspace():
         raise InvalidConditionError("Condition cannot be whitespace only")
         
-    # JS-compatible condition fix: Normalize condition before evaluation
+    # JS-style condition support fix: Normalize condition before evaluation
     original_condition = condition
     try:
         condition = normalize_condition(condition)
+        print(f"DEBUG: Original condition: {original_condition}")
+        print(f"DEBUG: Normalized condition: {condition}")
         tokens = _tokenize(condition)
+        print(f"DEBUG: Tokens: {[(t.type.name, t.value) for t in tokens]}")
         if not tokens:
             raise InvalidConditionError("Condition produced no valid tokens")
         return _evaluate_expression(tokens, context, visited_fields)
