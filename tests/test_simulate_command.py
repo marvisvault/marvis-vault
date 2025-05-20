@@ -461,10 +461,24 @@ def test_simulate_export_partial_conditions(tmp_path):
     assert len(export_data["fields_to_mask"]) == 0  # No fields masked since one condition passed
     assert len(export_data["conditions"]) == 2
     
-    # Check condition results
-    conditions = {c["field"]: c["result"] for c in export_data["conditions"]}
-    assert conditions["trustScore"] == "pass"
-    assert conditions["role"] == "fail"
+    # Check condition details
+    for condition in export_data["conditions"]:
+        assert "condition" in condition
+        assert "result" in condition
+        assert "explanation" in condition
+        assert "fields_affected" in condition
+        
+        if condition["condition"] == "trustScore > 75":
+            assert condition["result"] == "pass"
+            assert "trustScore 80 is greater than 75" in condition["explanation"]
+        elif condition["condition"] == "role == 'hr_manager'":
+            assert condition["result"] == "fail"
+            assert "role 'analyst' does not match 'hr_manager'" in condition["explanation"]
+            
+    # Check additional fields
+    assert "unmask_role_override" in export_data
+    assert "reason" in export_data
+    assert not export_data["unmask_role_override"]  # Should be false since role is not in unmask_roles
 
 def test_simulate_export_unmask_role(tmp_path):
     """Test export format when role is in unmask_roles."""
@@ -503,4 +517,8 @@ def test_simulate_export_unmask_role(tmp_path):
     export_data = json.loads(export_path.read_text())
     assert export_data["roles"] == ["admin"]
     assert len(export_data["fields_to_mask"]) == 0  # No fields masked due to unmask_role
-    assert len(export_data["conditions"]) == 0  # No conditions evaluated 
+    assert len(export_data["conditions"]) == 0  # No conditions evaluated due to unmask_role
+    
+    # Check unmask role override
+    assert export_data["unmask_role_override"] is True
+    assert "role 'admin' is in unmask_roles" in export_data["reason"] 

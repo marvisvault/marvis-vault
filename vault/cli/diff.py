@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, Any, Set, List, Tuple
+from typing import Dict, Any, Set, List, Tuple, Optional
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -28,12 +28,13 @@ def validate_evaluation_result(data: Dict[str, Any]) -> None:
     for i, condition in enumerate(data.get("conditions", [])):
         if not isinstance(condition, dict):
             raise typer.BadParameter(f"Invalid evaluation result: condition {i} must be a dictionary")
-        if "field" not in condition:
-            raise typer.BadParameter(f"Invalid evaluation result: condition {i} missing 'field'")
         if "result" not in condition:
             raise typer.BadParameter(f"Invalid evaluation result: condition {i} missing 'result'")
         if condition["result"] not in ["pass", "fail"]:
             raise typer.BadParameter(f"Invalid evaluation result: condition {i} result must be 'pass' or 'fail'")
+        # Allow either field or condition string
+        if "field" not in condition and "condition" not in condition:
+            raise typer.BadParameter(f"Invalid evaluation result: condition {i} missing both 'field' and 'condition'")
 
 def load_evaluation_result(file_path: Path) -> Dict[str, Any]:
     """Load a policy evaluation result from JSON file."""
@@ -58,26 +59,59 @@ def compare_fields(before: Dict[str, Any], after: Dict[str, Any]) -> Tuple[Set[s
     after_fields = set(after.get("fields_to_mask", []))
     return after_fields - before_fields, before_fields - after_fields
 
-def compare_conditions(before: Dict[str, Any], after: Dict[str, Any]) -> List[Tuple[str, str, str]]:
+def get_condition_key(condition: Dict[str, Any]) -> str:
+    """Get the key to use for condition comparison."""
+    # Prefer full condition string if available
+    return condition.get("condition", condition.get("field", "<unknown>"))
+
+def format_condition_change(before_result: Optional[str], after_result: Optional[str]) -> Tuple[str, str]:
+    """Format a condition change with color tags."""
+    if before_result is None:
+        return f"[green]added[/green]", f"now {after_result}"
+    elif after_result is None:
+        return f"[red]removed[/red]", f"was {before_result}"
+    elif before_result == after_result:
+        return "[yellow]unchanged[/yellow]", f"still {before_result}"
+    else:
+        # Format transition with colors
+        before_color = "[green]" if before_result == "pass" else "[red]"
+        after_color = "[green]" if after_result == "pass" else "[red]"
+        return (
+            f"{before_color}{before_result}[/] → {after_color}{after_result}[/]",
+            "evaluation flipped"
+        )
+
+def compare_conditions(before: Dict[str, Any], after: Dict[str, Any], verbose: bool = False) -> List[Tuple[str, str, str]]:
     """Compare condition evaluations between two results."""
     changes = []
-    before_conditions = {cond["field"]: cond["result"] for cond in before.get("conditions", [])}
-    after_conditions = {cond["field"]: cond["result"] for cond in after.get("conditions", [])}
     
-    # Check all fields that appear in either result
-    all_fields = set(before_conditions.keys()) | set(after_conditions.keys())
-    
-    for field in all_fields:
-        before_result = before_conditions.get(field)
-        after_result = after_conditions.get(field)
+    # Skip comparison if either file has no conditions
+    if not before.get("conditions") and not after.get("conditions"):
+        return changes
         
-        if before_result != after_result:
-            if before_result is None:
-                changes.append((field, "added", after_result))
-            elif after_result is None:
-                changes.append((field, "removed", before_result))
-            else:
-                changes.append((field, f"{before_result} → {after_result}", ""))
+    # Build condition maps using full condition strings as keys
+    before_conditions = {
+        get_condition_key(cond): cond["result"]
+        for cond in before.get("conditions", [])
+    }
+    after_conditions = {
+        get_condition_key(cond): cond["result"]
+        for cond in after.get("conditions", [])
+    }
+    
+    # Check all conditions that appear in either result
+    all_conditions = set(before_conditions.keys()) | set(after_conditions.keys())
+    
+    for condition in sorted(all_conditions):
+        before_result = before_conditions.get(condition)
+        after_result = after_conditions.get(condition)
+        
+        # Skip unchanged conditions unless verbose mode
+        if before_result == after_result and not verbose:
+            continue
+            
+        change, details = format_condition_change(before_result, after_result)
+        changes.append((condition, change, details))
     
     return changes
 
@@ -86,7 +120,8 @@ def format_diff(
     removed_roles: Set[str],
     added_fields: Set[str],
     removed_fields: Set[str],
-    condition_changes: List[Tuple[str, str, str]]
+    condition_changes: List[Tuple[str, str, str]],
+    verbose: bool = False
 ) -> None:
     """Format and display the diff results."""
     # Create a table for role changes
@@ -95,12 +130,13 @@ def format_diff(
         role_table.add_column("Change", style="bold")
         role_table.add_column("Role", style="cyan")
         
-        for role in added_roles:
+        for role in sorted(added_roles):
             role_table.add_row("[green]+[/green]", role)
-        for role in removed_roles:
+        for role in sorted(removed_roles):
             role_table.add_row("[red]-[/red]", role)
         
         console.print(role_table)
+        console.print()
     
     # Create a table for field changes
     if added_fields or removed_fields:
@@ -108,30 +144,32 @@ def format_diff(
         field_table.add_column("Change", style="bold")
         field_table.add_column("Field", style="cyan")
         
-        for field in added_fields:
+        for field in sorted(added_fields):
             field_table.add_row("[green]+[/green]", field)
-        for field in removed_fields:
+        for field in sorted(removed_fields):
             field_table.add_row("[red]-[/red]", field)
         
         console.print(field_table)
+        console.print()
     
     # Create a table for condition changes
     if condition_changes:
-        condition_table = Table(title="Condition Changes")
-        condition_table.add_column("Field", style="cyan")
+        condition_table = Table(title="Condition Evaluation Changes")
+        condition_table.add_column("Condition", style="cyan")
         condition_table.add_column("Change", style="bold")
         condition_table.add_column("Details", style="white")
         
-        for field, change, details in condition_changes:
-            condition_table.add_row(field, change, details)
+        for condition, change, details in condition_changes:
+            condition_table.add_row(condition, change, details)
         
         console.print(condition_table)
+        console.print()
     
     # Show summary
     total_changes = (
         len(added_roles) + len(removed_roles) +
         len(added_fields) + len(removed_fields) +
-        len(condition_changes)
+        len([c for c in condition_changes if "unchanged" not in c[1]])
     )
     
     if total_changes == 0:
@@ -164,6 +202,12 @@ def diff(
         dir_okay=False,
         readable=True,
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Show unchanged conditions and additional details",
+    ),
 ) -> None:
     """
     Compare two policy evaluation results.
@@ -179,7 +223,7 @@ def diff(
         # Compare results
         added_roles, removed_roles = compare_roles(before_result, after_result)
         added_fields, removed_fields = compare_fields(before_result, after_result)
-        condition_changes = compare_conditions(before_result, after_result)
+        condition_changes = compare_conditions(before_result, after_result, verbose)
         
         # Display results
         format_diff(
@@ -187,7 +231,8 @@ def diff(
             removed_roles,
             added_fields,
             removed_fields,
-            condition_changes
+            condition_changes,
+            verbose
         )
         
     except typer.BadParameter as e:

@@ -133,22 +133,31 @@ def format_masking_explanation(result, verbose: bool = False) -> Table:
     return table
 
 def format_export_data(context: Dict[str, Any], result) -> Dict[str, Any]:
-    """Format simulation results for export."""
-    # Extract field names from conditions
+    """Format simulation results for export.
+    
+    Args:
+        context: The agent context dictionary
+        result: The evaluation result object
+        
+    Returns:
+        Dict containing the formatted export data with full condition details
+    """
     conditions = []
     for condition in result.condition_results:
-        # Extract field name from condition string
-        # This is a simple heuristic - we take the first identifier before any operator
-        field = condition.condition.split()[0]
+        # Include full condition details
         conditions.append({
-            "field": field,
-            "result": "pass" if condition.success else "fail"
+            "condition": condition.condition,  # Full normalized condition string
+            "result": "pass" if condition.success else "fail",
+            "explanation": condition.explanation,  # Add explanation for why condition passed/failed
+            "fields_affected": condition.fields if hasattr(condition, "fields") else []  # Fields this condition affects
         })
     
     return {
         "roles": [context.get("role")],
         "fields_to_mask": result.fields,
-        "conditions": conditions
+        "conditions": conditions,
+        "unmask_role_override": result.unmask_role_override if hasattr(result, "unmask_role_override") else False,
+        "reason": result.reason  # Overall evaluation reason
     }
 
 def get_default_export_path() -> Path:
