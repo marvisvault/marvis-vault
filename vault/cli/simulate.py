@@ -41,12 +41,46 @@ def load_agent_context(agent_path: Path) -> dict:
 
 def format_masking_explanation(result, verbose: bool = False) -> Table:
     """Format the masking explanation in a readable way."""
-    if not result.fields and not verbose:
+   
+    if not result.fields:
         table = Table(title="Masking Analysis")
+        table.add_column("Field", style="cyan")
         table.add_column("Status", style="green")
-        table.add_row("No fields would be masked - at least one condition passed")
-        return table
-    
+        table.add_column("Reason", style="white")
+
+        table.add_row(
+            "—",
+            "[green]CLEAR[/green]",
+             "No fields would be masked — at least one condition passed"
+        )
+
+        # Always construct condition table in verbose mode  
+        if verbose:
+            condition_table = Table(title="Condition Evaluation Details")
+            condition_table.add_column("Condition", style="cyan")
+            condition_table.add_column("Status", style="yellow")
+            condition_table.add_column("Explanation", style="white")
+
+            if not result.condition_results:
+                condition_table.add_row(
+                    "—",
+                    "[yellow]SKIPPED[/yellow]",
+                    result.reason or "Condition evaluation was skipped"
+                )
+            else:
+                for condition in result.condition_results:
+                    condition_table.add_row(
+                        condition.condition,
+                        "[green]PASSED[/green]" if condition.success else "[red]FAILED[/red]",
+                        condition.explanation
+                    )
+
+            return [table, condition_table]
+        else:
+            return table
+
+   
+    # Basic Masking Analysis Table
     table = Table(title="Masking Analysis")
     table.add_column("Field", style="cyan")
     table.add_column("Status", style="yellow")
@@ -67,6 +101,14 @@ def format_masking_explanation(result, verbose: bool = False) -> Table:
         condition_table.add_column("Status", style="yellow")
         condition_table.add_column("Explanation", style="white")
         
+         # Fallback row for skipped condition evaluation
+        if not result.condition_results:
+            condition_table.add_row(
+                "—",
+                "[yellow]SKIPPED[/yellow]",
+                result.reason or "Condition evaluation was skipped"
+            )
+
         # Show passed conditions first
         for condition in result.condition_results:
             if condition.success:
