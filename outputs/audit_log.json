@@ -2,29 +2,29 @@
   "summary": {
     "total_fields_redacted": 3,
     "total_occurrences": 3,
-    "timestamp": "2025-05-20T00:07:41.519736+00:00",
+    "timestamp": "2025-05-20T02:31:00.698108+00:00",
     "format": "Text"
   },
   "field_statistics": {
-    "system": {
+    "email": {
       "count": 1,
-      "first_line": null,
-      "last_line": null
+      "first_line": 3,
+      "last_line": 3
     },
     "phone": {
       "count": 1,
       "first_line": 6,
       "last_line": 6
     },
-    "email": {
+    "system": {
       "count": 1,
-      "first_line": 3,
-      "last_line": 3
+      "first_line": null,
+      "last_line": null
     }
   },
   "detailed_log": [
     {
-      "timestamp": "2025-05-20T00:07:41.519736+00:00",
+      "timestamp": "2025-05-20T02:31:00.698108+00:00",
       "action": "redact",
       "role": "user",
       "field": "email",
@@ -36,7 +36,7 @@
       }
     },
     {
-      "timestamp": "2025-05-20T00:07:41.519736+00:00",
+      "timestamp": "2025-05-20T02:31:00.698108+00:00",
       "action": "redact",
       "role": "user",
       "field": "phone",
@@ -48,7 +48,7 @@
       }
     },
     {
-      "timestamp": "2025-05-20T00:07:41.519736+00:00",
+      "timestamp": "2025-05-20T02:31:00.698108+00:00",
       "action": "redact",
       "role": "user",
       "field": "system",
@@ -61,7 +61,7 @@
   "line_mapping": {
     "3": [
       {
-        "timestamp": "2025-05-20T00:07:41.519736+00:00",
+        "timestamp": "2025-05-20T02:31:00.698108+00:00",
         "action": "redact",
         "role": "user",
         "field": "email",
@@ -75,7 +75,7 @@
     ],
     "6": [
       {
-        "timestamp": "2025-05-20T00:07:41.519736+00:00",
+        "timestamp": "2025-05-20T02:31:00.698108+00:00",
         "action": "redact",
         "role": "user",
         "field": "phone",

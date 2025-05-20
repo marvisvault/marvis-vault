@@ -4,12 +4,13 @@ Simulate command for testing policy evaluation.
 
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 import typer
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
+from datetime import datetime
 from ..engine.policy_engine import evaluate
 
 app = typer.Typer()
@@ -131,6 +132,30 @@ def format_masking_explanation(result, verbose: bool = False) -> Table:
         
     return table
 
+def format_export_data(context: Dict[str, Any], result) -> Dict[str, Any]:
+    """Format simulation results for export."""
+    # Extract field names from conditions
+    conditions = []
+    for condition in result.condition_results:
+        # Extract field name from condition string
+        # This is a simple heuristic - we take the first identifier before any operator
+        field = condition.condition.split()[0]
+        conditions.append({
+            "field": field,
+            "result": "pass" if condition.success else "fail"
+        })
+    
+    return {
+        "roles": [context.get("role")],
+        "fields_to_mask": result.fields,
+        "conditions": conditions
+    }
+
+def get_default_export_path() -> Path:
+    """Generate default export path with timestamp."""
+    timestamp = datetime.now().strftime("%Y_%m_%d_%H%M")
+    return Path("outputs") / f"simulate_{timestamp}.json"
+
 @app.command()
 def simulate(
     agent: Path = typer.Option(
@@ -158,6 +183,12 @@ def simulate(
         "--verbose",
         "-v",
         help="Show detailed condition evaluation results",
+    ),
+    export: Optional[Path] = typer.Option(
+        None,
+        "--export",
+        "-e",
+        help="Export results to JSON file (default: outputs/simulate_<timestamp>.json)",
     ),
 ) -> None:
     """
@@ -197,6 +228,20 @@ def simulate(
                 console.print()
         else:
             console.print(tables)
+            
+        # Export results if requested
+        if export is not None:
+            # If no path provided, use default
+            export_path = export if export != Path() else get_default_export_path()
+            
+            # Ensure outputs directory exists
+            export_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Format and save export data
+            export_data = format_export_data(context, result)
+            export_path.write_text(json.dumps(export_data, indent=2))
+            
+            console.print(f"\n[green]Results exported to:[/green] {export_path}")
         
     except Exception as e:
         console.print(Panel(

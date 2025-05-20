@@ -51,7 +51,7 @@ app.command(
 
 app.command(
     name="diff",
-    help="Compare two policy files",
+    help="Compare two evaluation files",
 )(diff)
 
 app.command(

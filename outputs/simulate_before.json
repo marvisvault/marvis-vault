@@ -1,0 +1,20 @@
+{
+  "roles": [
+    "intern"
+  ],
+  "fields_to_mask": [
+    "name",
+    "dob",
+    "ssn"
+  ],
+  "conditions": [
+    {
+      "field": "trustScore",
+      "result": "fail"
+    },
+    {
+      "field": "trustScore",
+      "result": "fail"
+    }
+  ]
+}

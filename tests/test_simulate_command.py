@@ -363,4 +363,144 @@ def test_simulate_all_conditions_fail(tmp_path):
     assert "All conditions failed" in result.stdout
     assert "MASKED" in result.stdout
     assert "ssn" in result.stdout
-    assert "dob" in result.stdout 
+    assert "dob" in result.stdout
+
+def test_simulate_export_default_path(temp_agent_file, temp_policy_file, tmp_path):
+    """Test simulate command with default export path."""
+    # Create outputs directory in temp path
+    outputs_dir = tmp_path / "outputs"
+    outputs_dir.mkdir()
+    
+    # Run simulate with export flag
+    with runner.isolated_filesystem(temp_dir=tmp_path):
+        result = runner.invoke(app, [
+            "simulate",
+            "-a", str(temp_agent_file),
+            "-p", str(temp_policy_file),
+            "-e"
+        ])
+        
+        # Check command output
+        assert result.exit_code == 0
+        assert "Results exported to:" in result.stdout
+        
+        # Verify export file exists and has correct format
+        export_files = list(outputs_dir.glob("simulate_*.json"))
+        assert len(export_files) == 1
+        
+        export_data = json.loads(export_files[0].read_text())
+        assert "roles" in export_data
+        assert "fields_to_mask" in export_data
+        assert "conditions" in export_data
+        assert isinstance(export_data["roles"], list)
+        assert isinstance(export_data["fields_to_mask"], list)
+        assert isinstance(export_data["conditions"], list)
+        assert all(isinstance(c, dict) for c in export_data["conditions"])
+        assert all("field" in c and "result" in c for c in export_data["conditions"])
+
+def test_simulate_export_custom_path(temp_agent_file, temp_policy_file, tmp_path):
+    """Test simulate command with custom export path."""
+    export_path = tmp_path / "custom_export.json"
+    
+    result = runner.invoke(app, [
+        "simulate",
+        "-a", str(temp_agent_file),
+        "-p", str(temp_policy_file),
+        "-e", str(export_path)
+    ])
+    
+    # Check command output
+    assert result.exit_code == 0
+    assert str(export_path) in result.stdout
+    
+    # Verify export file exists and has correct format
+    assert export_path.exists()
+    export_data = json.loads(export_path.read_text())
+    assert export_data["roles"] == ["admin"]
+    assert isinstance(export_data["fields_to_mask"], list)
+    assert len(export_data["conditions"]) > 0
+
+def test_simulate_export_partial_conditions(tmp_path):
+    """Test export format with partial condition passes."""
+    # Create agent with mixed condition results
+    agent_data = {
+        "role": "analyst",
+        "trustScore": 80,
+        "department": "IT"
+    }
+    agent_file = tmp_path / "agent.json"
+    agent_file.write_text(json.dumps(agent_data))
+    
+    # Create policy with passing and failing conditions
+    policy_data = {
+        "mask": ["ssn", "dob"],
+        "unmask_roles": ["admin"],
+        "conditions": [
+            "trustScore > 75",  # Should pass
+            "role == 'hr_manager'"  # Should fail
+        ]
+    }
+    policy_file = tmp_path / "policy.json"
+    policy_file.write_text(json.dumps(policy_data))
+    
+    # Run simulate with export
+    export_path = tmp_path / "partial_conditions.json"
+    result = runner.invoke(app, [
+        "simulate",
+        "-a", str(agent_file),
+        "-p", str(policy_file),
+        "-e", str(export_path)
+    ])
+    
+    # Check command succeeded
+    assert result.exit_code == 0
+    
+    # Verify export data
+    export_data = json.loads(export_path.read_text())
+    assert export_data["roles"] == ["analyst"]
+    assert len(export_data["fields_to_mask"]) == 0  # No fields masked since one condition passed
+    assert len(export_data["conditions"]) == 2
+    
+    # Check condition results
+    conditions = {c["field"]: c["result"] for c in export_data["conditions"]}
+    assert conditions["trustScore"] == "pass"
+    assert conditions["role"] == "fail"
+
+def test_simulate_export_unmask_role(tmp_path):
+    """Test export format when role is in unmask_roles."""
+    # Create agent with admin role
+    agent_data = {
+        "role": "admin",
+        "trustScore": 50  # Would fail conditions
+    }
+    agent_file = tmp_path / "agent.json"
+    agent_file.write_text(json.dumps(agent_data))
+    
+    # Create policy with admin in unmask_roles
+    policy_data = {
+        "mask": ["ssn", "dob"],
+        "unmask_roles": ["admin"],
+        "conditions": [
+            "trustScore > 75"  # Would fail
+        ]
+    }
+    policy_file = tmp_path / "policy.json"
+    policy_file.write_text(json.dumps(policy_data))
+    
+    # Run simulate with export
+    export_path = tmp_path / "unmask_role.json"
+    result = runner.invoke(app, [
+        "simulate",
+        "-a", str(agent_file),
+        "-p", str(policy_file),
+        "-e", str(export_path)
+    ])
+    
+    # Check command succeeded
+    assert result.exit_code == 0
+    
+    # Verify export data
+    export_data = json.loads(export_path.read_text())
+    assert export_data["roles"] == ["admin"]
+    assert len(export_data["fields_to_mask"]) == 0  # No fields masked due to unmask_role
+    assert len(export_data["conditions"]) == 0  # No conditions evaluated 
