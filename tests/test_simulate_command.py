@@ -259,4 +259,108 @@ def test_simulate_mixed_condition_failures(temp_agent_file, tmp_path):
     assert "Skipped invalid condition" in result.stdout
     assert "Invalid operator at position 0" in result.stdout  # For "!== invalid syntax"
     assert "Context key 'unknown_field' not found" in result.stdout
-    assert "All conditions passed" in result.stdout  # Valid conditions still pass 
+    assert "All conditions passed" in result.stdout  # Valid conditions still pass
+
+def test_simulate_partial_condition_pass(tmp_path):
+    """Test that fields are not masked if at least one condition passes."""
+    # Create agent with trustScore > 75 but not hr_manager role
+    agent_data = {
+        "role": "analyst",
+        "trustScore": 80,
+        "department": "IT"
+    }
+    agent_file = tmp_path / "agent.json"
+    agent_file.write_text(json.dumps(agent_data))
+    
+    # Create policy with two conditions - one should pass, one should fail
+    policy_data = {
+        "mask": ["ssn", "dob"],
+        "unmask_roles": ["admin"],
+        "conditions": [
+            "trustScore > 75",  # This should pass
+            "role == 'hr_manager'"  # This should fail
+        ]
+    }
+    policy_file = tmp_path / "policy.json"
+    policy_file.write_text(json.dumps(policy_data))
+    
+    # Run simulate command
+    result = runner.invoke(app, ["simulate", "-a", str(agent_file), "-p", str(policy_file)])
+    
+    # Check results
+    assert result.exit_code == 0
+    assert "1 of 2 conditions passed" in result.stdout
+    assert "No fields would be masked" in result.stdout
+    
+    # Run with verbose flag
+    result = runner.invoke(app, ["simulate", "-a", str(agent_file), "-p", str(policy_file), "-v"])
+    assert result.exit_code == 0
+    assert "trustScore > 75" in result.stdout
+    assert "PASSED" in result.stdout
+    assert "role == 'hr_manager'" in result.stdout
+    assert "FAILED" in result.stdout
+
+def test_simulate_unmask_role_override(tmp_path):
+    """Test that unmask_roles override condition evaluation."""
+    # Create agent with admin role but failing conditions
+    agent_data = {
+        "role": "admin",
+        "trustScore": 50,  # Would fail trustScore condition
+        "department": "IT"
+    }
+    agent_file = tmp_path / "agent.json"
+    agent_file.write_text(json.dumps(agent_data))
+    
+    # Create policy where admin is in unmask_roles
+    policy_data = {
+        "mask": ["ssn", "dob"],
+        "unmask_roles": ["admin"],
+        "conditions": [
+            "trustScore > 75",  # Would fail
+            "department == 'HR'"  # Would fail
+        ]
+    }
+    policy_file = tmp_path / "policy.json"
+    policy_file.write_text(json.dumps(policy_data))
+    
+    # Run simulate command
+    result = runner.invoke(app, ["simulate", "-a", str(agent_file), "-p", str(policy_file)])
+    
+    # Check that conditions were skipped due to unmask_role
+    assert result.exit_code == 0
+    assert "Role admin is in unmask_roles" in result.stdout
+    assert "No fields would be masked" in result.stdout
+
+def test_simulate_all_conditions_fail(tmp_path):
+    """Test that fields are masked only when all conditions fail."""
+    # Create agent that fails all conditions
+    agent_data = {
+        "role": "analyst",
+        "trustScore": 50,
+        "department": "IT"
+    }
+    agent_file = tmp_path / "agent.json"
+    agent_file.write_text(json.dumps(agent_data))
+    
+    # Create policy with multiple failing conditions
+    policy_data = {
+        "mask": ["ssn", "dob"],
+        "unmask_roles": ["admin"],
+        "conditions": [
+            "trustScore > 75",  # Will fail
+            "role == 'hr_manager'",  # Will fail
+            "department == 'HR'"  # Will fail
+        ]
+    }
+    policy_file = tmp_path / "policy.json"
+    policy_file.write_text(json.dumps(policy_data))
+    
+    # Run simulate command
+    result = runner.invoke(app, ["simulate", "-a", str(agent_file), "-p", str(policy_file)])
+    
+    # Check that all fields are masked
+    assert result.exit_code == 0
+    assert "All conditions failed" in result.stdout
+    assert "MASKED" in result.stdout
+    assert "ssn" in result.stdout
+    assert "dob" in result.stdout 

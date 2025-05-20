@@ -39,12 +39,12 @@ def load_agent_context(agent_path: Path) -> dict:
     except Exception as e:
         raise ValueError(f"Failed to load agent file: {str(e)}")
 
-def format_masking_explanation(result) -> Table:
+def format_masking_explanation(result, verbose: bool = False) -> Table:
     """Format the masking explanation in a readable way."""
-    if not result.fields:
+    if not result.fields and not verbose:
         table = Table(title="Masking Analysis")
         table.add_column("Status", style="green")
-        table.add_row("No fields would be masked - all conditions are met")
+        table.add_row("No fields would be masked - at least one condition passed")
         return table
     
     table = Table(title="Masking Analysis")
@@ -52,13 +52,41 @@ def format_masking_explanation(result) -> Table:
     table.add_column("Status", style="yellow")
     table.add_column("Reason", style="white")
     
+    # Show fields that would be masked
     for field in result.fields:
         table.add_row(
             field,
             "[red]MASKED[/red]",
-            result.reason
+            "All conditions failed"
         )
     
+    # In verbose mode, show condition evaluation details
+    if verbose:
+        condition_table = Table(title="Condition Evaluation Details")
+        condition_table.add_column("Condition", style="cyan")
+        condition_table.add_column("Status", style="yellow")
+        condition_table.add_column("Explanation", style="white")
+        
+        # Show passed conditions first
+        for condition in result.condition_results:
+            if condition.success:
+                condition_table.add_row(
+                    condition.condition,
+                    "[green]PASSED[/green]",
+                    condition.explanation
+                )
+        
+        # Then show failed conditions
+        for condition in result.condition_results:
+            if not condition.success:
+                condition_table.add_row(
+                    condition.condition,
+                    "[red]FAILED[/red]",
+                    condition.explanation
+                )
+                
+        return [table, condition_table]
+        
     return table
 
 @app.command()
@@ -82,6 +110,12 @@ def simulate(
         file_okay=True,
         dir_okay=False,
         readable=True,
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Show detailed condition evaluation results",
     ),
 ) -> None:
     """
@@ -114,7 +148,13 @@ def simulate(
         
         # Display masking analysis
         console.print("\n[bold]Masking Analysis[/bold]")
-        console.print(format_masking_explanation(result))
+        tables = format_masking_explanation(result, verbose)
+        if isinstance(tables, list):
+            for table in tables:
+                console.print(table)
+                console.print()
+        else:
+            console.print(tables)
         
     except Exception as e:
         console.print(Panel(
