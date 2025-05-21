@@ -14,6 +14,7 @@ class ConditionResult(NamedTuple):
     condition: str
     success: bool
     explanation: str
+    fields: List[str]  # Fields affected by this condition
 
 class EvaluationResult(BaseModel):
     """Result of policy evaluation."""
@@ -24,6 +25,7 @@ class EvaluationResult(BaseModel):
     condition_results: List[ConditionResult] = []
     passed_conditions: List[str] = []
     failed_conditions: List[str] = []
+    unmask_role_override: bool = False
 
 def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
     """
@@ -47,7 +49,8 @@ def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
             fields=[],
             condition_results=[],
             passed_conditions=[],
-            failed_conditions=[]
+            failed_conditions=[],
+            unmask_role_override=True
         )
     
     # Track results
@@ -59,8 +62,8 @@ def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
     # Evaluate all conditions
     for condition in policy.conditions:
         try:
-            success, explanation = evaluate_condition(condition, context)
-            result = ConditionResult(condition, success, explanation)
+            success, explanation, fields_affected = evaluate_condition(condition, context)
+            result = ConditionResult(condition, success, explanation, fields_affected)
             condition_results.append(result)
             
             if success:
@@ -80,7 +83,8 @@ def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
                 skipped_conditions=skipped_conditions,
                 condition_results=condition_results,
                 passed_conditions=passed_conditions,
-                failed_conditions=failed_conditions
+                failed_conditions=failed_conditions,
+                unmask_role_override=False
             )
     
     # Fields should only be masked if ALL conditions fail
@@ -101,5 +105,6 @@ def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
         skipped_conditions=skipped_conditions,
         condition_results=condition_results,
         passed_conditions=passed_conditions,
-        failed_conditions=failed_conditions
+        failed_conditions=failed_conditions,
+        unmask_role_override=False
     ) 

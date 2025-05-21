@@ -303,10 +303,10 @@ def _evaluate_expression(
                 
                 if tokens[i].value == Operator.AND:
                     result = left_result and right_result
-                    return result, f"({left_explanation}) AND ({right_explanation}) is {result}"
+                    return result, f"{left_explanation} AND {right_explanation}"
                 else:  # OR
                     result = left_result or right_result
-                    return result, f"({left_explanation}) OR ({right_explanation}) is {result}"
+                    return result, f"{left_explanation} OR {right_explanation}"
             except Exception as e:
                 raise ValueError(f"Failed to evaluate {tokens[i].value.name} operation: {str(e)}")
             
@@ -337,10 +337,19 @@ def _evaluate_expression(
                 raise CircularReferenceError(left, list(visited_fields))
             if left in context:
                 visited_fields.add(left)
+                left_display = f"{tokens[0].value}"
+                left_value = context[left]
+                if isinstance(left_value, str):
+                    left_value = f"'{left_value}'"
                 left = context[left]
             else:
                 # JS-style condition support fix: Better error for missing context keys
                 raise ValueError(f"Context key '{left}' not found in {list(context.keys())}")
+        else:
+            left_display = str(left)
+            left_value = left
+            if isinstance(left_value, str):
+                left_value = f"'{left_value}'"
             
         # Get right value from context if it's a context variable
         if tokens[2].type == TokenType.VALUE and isinstance(right, str):
@@ -348,10 +357,19 @@ def _evaluate_expression(
                 raise CircularReferenceError(right, list(visited_fields))
             if right in context:
                 visited_fields.add(right)
+                right_display = f"{tokens[2].value}"
+                right_value = context[right]
+                if isinstance(right_value, str):
+                    right_value = f"'{right_value}'"
                 right = context[right]
             else:
                 # JS-style condition support fix: Better error for missing context keys
                 raise ValueError(f"Context key '{right}' not found in {list(context.keys())}")
+        else:
+            right_display = str(right)
+            right_value = right
+            if isinstance(right_value, str):
+                right_value = f"'{right_value}'"
             
         # Validate numeric comparisons
         if op in [Operator.GREATER_THAN, Operator.LESS_THAN, Operator.GREATER_THAN_OR_EQUAL, Operator.LESS_THAN_OR_EQUAL]:
@@ -364,22 +382,25 @@ def _evaluate_expression(
         # Perform comparison
         if op == Operator.EQUALS:
             result = left == right
-            return result, f"{left} == {right} is {result}"
+            if not result and tokens[0].value == "role":
+                # For role comparison failures, show as not equals
+                return result, f"{left_display} {left_value} != {right_value}"
+            return result, f"{left_display} {left_value} == {right_value}"
         elif op == Operator.NOT_EQUALS:
             result = left != right
-            return result, f"{left} != {right} is {result}"
+            return result, f"{left_display} {left_value} != {right_value}"
         elif op == Operator.GREATER_THAN:
             result = left > right
-            return result, f"{left} > {right} is {result}"
+            return result, f"{left_display} {left_value} > {right_value}"
         elif op == Operator.LESS_THAN:
             result = left < right
-            return result, f"{left} < {right} is {result}"
+            return result, f"{left_display} {left_value} < {right_value}"
         elif op == Operator.GREATER_THAN_OR_EQUAL:
             result = left >= right
-            return result, f"{left} >= {right} is {result}"
+            return result, f"{left_display} {left_value} >= {right_value}"
         elif op == Operator.LESS_THAN_OR_EQUAL:
             result = left <= right
-            return result, f"{left} <= {right} is {result}"
+            return result, f"{left_display} {left_value} <= {right_value}"
             
     raise ValueError("Invalid expression structure")
 
@@ -416,13 +437,19 @@ def evaluate_condition(
     original_condition = condition
     try:
         condition = normalize_condition(condition)
-        print(f"DEBUG: Original condition: {original_condition}")
-        print(f"DEBUG: Normalized condition: {condition}")
         tokens = _tokenize(condition)
-        print(f"DEBUG: Tokens: {[(t.type.name, t.value) for t in tokens]}")
         if not tokens:
             raise InvalidConditionError("Condition produced no valid tokens")
-        return _evaluate_expression(tokens, context, visited_fields)
+            
+        # Track fields used in condition
+        fields_affected = set()
+        for token in tokens:
+            if token.type == TokenType.VALUE and isinstance(token.value, str):
+                if token.value in context:
+                    fields_affected.add(token.value)
+                    
+        result, explanation = _evaluate_expression(tokens, context, visited_fields)
+        return result, explanation, list(fields_affected)  # Return fields_affected as list
     except CircularReferenceError:
         raise
     except InvalidConditionError:

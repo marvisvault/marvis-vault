@@ -1,6 +1,6 @@
 {
-    "role": "admin",
-    "trustScore": 90,
+    "role": "hr_admin",
+    "trustScore": 80,
     "context": {
       "department": "IT",
       "location": "US"

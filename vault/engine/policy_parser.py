@@ -3,7 +3,7 @@ Policy parser for loading and validating policy files.
 """
 
 from pathlib import Path
-from typing import List, Union, Dict, Any, Set
+from typing import List, Union, Dict, Any, Set, Optional
 import json
 import yaml
 from pydantic import BaseModel, Field
@@ -13,6 +13,8 @@ class Policy(BaseModel):
     mask: List[str] = Field(..., description="Fields to mask")
     unmask_roles: List[str] = Field(..., description="List of roles that can unmask data")
     conditions: List[str] = Field(..., description="List of conditions that must be met")
+    name: Optional[str] = Field(None, description="Policy name")
+    template_id: Optional[str] = Field(None, description="Template ID if policy is based on a template")
 
 def load_policy(file_path: Union[str, Path]) -> Dict[str, Any]:
     """

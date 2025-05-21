@@ -4,7 +4,7 @@ Simulate command for testing policy evaluation.
 
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -40,125 +40,126 @@ def load_agent_context(agent_path: Path) -> dict:
     except Exception as e:
         raise ValueError(f"Failed to load agent file: {str(e)}")
 
-def format_masking_explanation(result, verbose: bool = False) -> Table:
-    """Format the masking explanation in a readable way."""
-   
-    if not result.fields:
-        table = Table(title="Masking Analysis")
-        table.add_column("Field", style="cyan")
-        table.add_column("Status", style="green")
-        table.add_column("Reason", style="white")
+def get_context_summary(context: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract key fields for context summary."""
+    return {
+        "role": context.get("role"),
+        "trustScore": context.get("trustScore"),
+        "department": context.get("department")
+    }
 
-        table.add_row(
+def format_masking_explanation(result, context: Dict[str, Any], verbose: bool = False) -> List[Table]:
+    """Format the masking explanation in a readable way."""
+    tables = []
+    
+    # Context Summary Table
+    context_table = Table(title="Context Summary")
+    context_table.add_column("Field", style="cyan")
+    context_table.add_column("Value", style="white")
+    
+    context_summary = get_context_summary(context)
+    for key, value in context_summary.items():
+        if value is not None:
+            context_table.add_row(key, str(value))
+    tables.append(context_table)
+    
+    # Masking Analysis Table
+    masking_table = Table(title="Masking Analysis")
+    masking_table.add_column("Field", style="cyan")
+    masking_table.add_column("Status", style="yellow")
+    masking_table.add_column("Reason", style="white")
+    
+    if result.unmask_role_override:
+        masking_table.add_row(
             "—",
             "[green]CLEAR[/green]",
-             "No fields would be masked — at least one condition passed"
+            f"Unmasked for role '{context.get('role')}'"
         )
-
-        # Always construct condition table in verbose mode  
-        if verbose:
-            condition_table = Table(title="Condition Evaluation Details")
-            condition_table.add_column("Condition", style="cyan")
-            condition_table.add_column("Status", style="yellow")
-            condition_table.add_column("Explanation", style="white")
-
-            if not result.condition_results:
+    elif not result.fields:
+        masking_table.add_row(
+            "—",
+            "[green]CLEAR[/green]",
+            "No fields would be masked — at least one condition passed"
+        )
+    else:
+        for field in result.fields:
+            masking_table.add_row(
+                field,
+                "[red]MASKED[/red]",
+                "All conditions failed"
+            )
+    tables.append(masking_table)
+    
+    # Condition Evaluation Table (always shown, but with more detail in verbose mode)
+    condition_table = Table(title="Condition Evaluation")
+    condition_table.add_column("Condition", style="cyan")
+    condition_table.add_column("Status", style="yellow")
+    if verbose:
+        condition_table.add_column("Explanation", style="white")
+        condition_table.add_column("Fields Affected", style="white")
+    
+    if result.unmask_role_override:
+        condition_table.add_row(
+            "—",
+            "[yellow]SKIPPED[/yellow]",
+            "Role-based unmask override applied" if verbose else None,
+            "—" if verbose else None
+        )
+    elif not result.condition_results:
+        condition_table.add_row(
+            "—",
+            "[yellow]SKIPPED[/yellow]",
+            result.reason or "Condition evaluation was skipped" if verbose else None,
+            "—" if verbose else None
+        )
+    else:
+        for condition in result.condition_results:
+            status = "[green]PASSED[/green]" if condition.success else "[red]FAILED[/red]"
+            if verbose:
+                fields = ", ".join(condition.fields) if hasattr(condition, "fields") and condition.fields else "—"
                 condition_table.add_row(
-                    "—",
-                    "[yellow]SKIPPED[/yellow]",
-                    result.reason or "Condition evaluation was skipped"
+                    condition.condition,
+                    status,
+                    condition.explanation,
+                    fields
                 )
             else:
-                for condition in result.condition_results:
-                    condition_table.add_row(
-                        condition.condition,
-                        "[green]PASSED[/green]" if condition.success else "[red]FAILED[/red]",
-                        condition.explanation
-                    )
-
-            return [table, condition_table]
-        else:
-            return table
-
-   
-    # Basic Masking Analysis Table
-    table = Table(title="Masking Analysis")
-    table.add_column("Field", style="cyan")
-    table.add_column("Status", style="yellow")
-    table.add_column("Reason", style="white")
+                condition_table.add_row(condition.condition, status)
     
-    # Show fields that would be masked
-    for field in result.fields:
-        table.add_row(
-            field,
-            "[red]MASKED[/red]",
-            "All conditions failed"
-        )
-    
-    # In verbose mode, show condition evaluation details
-    if verbose:
-        condition_table = Table(title="Condition Evaluation Details")
-        condition_table.add_column("Condition", style="cyan")
-        condition_table.add_column("Status", style="yellow")
-        condition_table.add_column("Explanation", style="white")
-        
-         # Fallback row for skipped condition evaluation
-        if not result.condition_results:
-            condition_table.add_row(
-                "—",
-                "[yellow]SKIPPED[/yellow]",
-                result.reason or "Condition evaluation was skipped"
-            )
+    tables.append(condition_table)
+    return tables
 
-        # Show passed conditions first
-        for condition in result.condition_results:
-            if condition.success:
-                condition_table.add_row(
-                    condition.condition,
-                    "[green]PASSED[/green]",
-                    condition.explanation
-                )
-        
-        # Then show failed conditions
-        for condition in result.condition_results:
-            if not condition.success:
-                condition_table.add_row(
-                    condition.condition,
-                    "[red]FAILED[/red]",
-                    condition.explanation
-                )
-                
-        return [table, condition_table]
-        
-    return table
-
-def format_export_data(context: Dict[str, Any], result) -> Dict[str, Any]:
-    """Format simulation results for export.
-    
-    Args:
-        context: The agent context dictionary
-        result: The evaluation result object
-        
-    Returns:
-        Dict containing the formatted export data with full condition details
-    """
+def format_export_data(context: Dict[str, Any], result, policy_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Format simulation results for export."""
     conditions = []
-    for condition in result.condition_results:
-        # Include full condition details
-        conditions.append({
-            "condition": condition.condition,  # Full normalized condition string
-            "result": "pass" if condition.success else "fail",
-            "explanation": condition.explanation,  # Add explanation for why condition passed/failed
-            "fields_affected": condition.fields if hasattr(condition, "fields") else []  # Fields this condition affects
-        })
+    if not result.unmask_role_override:
+        for condition in result.condition_results:
+            conditions.append({
+                "condition": condition.condition,
+                "result": "pass" if condition.success else "fail",
+                "explanation": condition.explanation,
+                "fields_affected": condition.fields if hasattr(condition, "fields") else []
+            })
     
-    return {
+    export_data = {
+        "context_summary": get_context_summary(context),
         "roles": [context.get("role")],
         "fields_to_mask": result.fields,
         "conditions": conditions,
-        "unmask_role_override": result.unmask_role_override if hasattr(result, "unmask_role_override") else False,
-        "reason": result.reason  # Overall evaluation reason
+        "unmask_role_override": result.unmask_role_override,
+        "reason": result.reason
     }
+    
+    # Add policy metadata if available
+    if policy_path:
+        try:
+            policy_data = json.loads(policy_path.read_text())
+            export_data["policy_name"] = policy_data.get("name")
+            export_data["template_id"] = policy_data.get("template_id")
+        except (json.JSONDecodeError, IOError):
+            pass
+            
+    return export_data
 
 def get_default_export_path() -> Path:
     """Generate default export path with timestamp."""
@@ -229,14 +230,11 @@ def simulate(
             console.print(warning_table)
         
         # Display masking analysis
-        console.print("\n[bold]Masking Analysis[/bold]")
-        tables = format_masking_explanation(result, verbose)
-        if isinstance(tables, list):
-            for table in tables:
-                console.print(table)
-                console.print()
-        else:
-            console.print(tables)
+        console.print("\n[bold]Analysis[/bold]")
+        tables = format_masking_explanation(result, context, verbose)
+        for table in tables:
+            console.print(table)
+            console.print()
             
         # Export results if requested
         if export is not None:
@@ -247,7 +245,7 @@ def simulate(
             export_path.parent.mkdir(parents=True, exist_ok=True)
             
             # Format and save export data
-            export_data = format_export_data(context, result)
+            export_data = format_export_data(context, result, policy)
             export_path.write_text(json.dumps(export_data, indent=2))
             
             console.print(f"\n[green]Results exported to:[/green] {export_path}")

@@ -1,0 +1,16 @@
+{
+  "context_summary": {
+    "role": "admin",
+    "trustScore": 90,
+    "department": null
+  },
+  "roles": [
+    "admin"
+  ],
+  "fields_to_mask": [],
+  "conditions": [],
+  "unmask_role_override": true,
+  "reason": "Role admin is in unmask_roles - skipping condition evaluation",
+  "policy_name": null,
+  "template_id": null
+}

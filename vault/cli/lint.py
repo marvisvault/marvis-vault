@@ -136,6 +136,11 @@ def lint(
         dir_okay=False,
         readable=True,
     ),
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        help="Treat warnings as fatal errors (exit code 1)"
+    )
 ) -> None:
     """
     Lint a policy file for potential issues.
@@ -163,12 +168,11 @@ def lint(
         format_validation_results(errors, warnings)
         
         # Exit with appropriate code
-        if errors:
-            raise typer.Exit(1)
-        elif warnings:
+        if errors or (strict and warnings):
             raise typer.Exit(1)
         else:
             raise typer.Exit(0)
+
             
     except Exception as e:
         console.print(Panel(
