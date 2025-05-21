@@ -9,7 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from ..engine.policy_parser import parse_policy
+from ..engine.policy_parser import parse_policy, Policy
 from pydantic import BaseModel
 
 app = typer.Typer()
@@ -17,11 +17,6 @@ console = Console()
 
 # Required fields in policy
 REQUIRED_FIELDS = {"mask", "unmask_roles", "conditions"}
-
-class Policy(BaseModel):
-    mask: List[str]
-    unmask_roles: List[str]
-    conditions: List[str]
 
 def validate_required_fields(policy: Policy) -> List[str]:
     """Validate that all required fields exist."""
@@ -84,11 +79,12 @@ def check_overbroad_unmask_roles(policy: Policy) -> List[str]:
 def check_missing_context_fields(policy: Policy) -> List[str]:
     """Check for fields to mask that might be missing from context."""
     warnings = []
+    # Don't warn about standard context fields
+    standard_fields = {"role", "trustScore", "department", "location"}
     for i, condition in enumerate(policy.conditions):
-        if "role" in condition:
-            warnings.append("Condition uses 'role' field which must be present in context")
-        if "trustScore" in condition:
-            warnings.append("Condition uses 'trustScore' field which must be present in context")
+        for field in policy.mask:
+            if field in condition and field not in standard_fields:
+                warnings.append(f"Condition {i} uses field '{field}' which must be present in context")
     return warnings
 
 def format_validation_results(
@@ -96,31 +92,36 @@ def format_validation_results(
     warnings: List[str]
 ) -> None:
     """Format and display validation results."""
-    if errors or warnings:
-        # Create a table for errors
-        if errors:
-            error_table = Table(title="Errors", style="red")
-            error_table.add_column("Error", style="red")
-            for error in errors:
-                error_table.add_row(error)
-            console.print(error_table)
-        
-        # Create a table for warnings
-        if warnings:
-            warning_table = Table(title="Warnings", style="yellow")
-            warning_table.add_column("Warning", style="yellow")
-            for warning in warnings:
-                warning_table.add_row(warning)
-            console.print(warning_table)
-        
-        # Show summary
+    # Create a table for errors if any
+    if errors:
+        error_table = Table(title="Errors", style="red")
+        error_table.add_column("Error", style="red")
+        for error in errors:
+            error_table.add_row(error)
+        console.print(error_table)
+    
+    # Create a table for warnings if any
+    if warnings:
+        warning_table = Table(title="Warnings", style="yellow")
+        warning_table.add_column("Warning", style="yellow")
+        for warning in warnings:
+            warning_table.add_row(warning)
+        console.print(warning_table)
+    
+    # Show summary
+    if errors:
         console.print(Panel(
             f"Found {len(errors)} error(s) and {len(warnings)} warning(s)",
-            style="red" if errors else "yellow"
+            style="red"
+        ))
+    elif warnings:
+        console.print(Panel(
+            f"Found 0 error(s) and {len(warnings)} warning(s)",
+            style="yellow"
         ))
     else:
         console.print(Panel(
-            "[green]Policy is valid![/green]",
+            "[green]Policy is valid![/green]\nFound 0 error(s) and 0 warning(s)",
             title="Validation Result"
         ))
 
@@ -147,6 +148,10 @@ def lint(
     
     Validates the policy structure, checks for common issues, and provides
     warnings about potential problems.
+    
+    Exit codes:
+    - 0: No errors or warnings (or warnings in non-strict mode)
+    - 1: Errors found or warnings in strict mode
     """
     try:
         # Parse policy
@@ -168,13 +173,14 @@ def lint(
         format_validation_results(errors, warnings)
         
         # Exit with appropriate code
-        if errors or (strict and warnings):
+        if errors:
+            raise typer.Exit(1)
+        elif strict and warnings:
             raise typer.Exit(1)
         else:
             raise typer.Exit(0)
-
             
-    except Exception as e:
+    except (FileNotFoundError, ValueError) as e:
         console.print(Panel(
             f"[red]Error:[/red] {str(e)}",
             title="[red]Error[/red]",

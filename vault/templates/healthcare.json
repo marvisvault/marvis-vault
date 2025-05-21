@@ -1,6 +1,6 @@
 {
   "mask": ["medicalHistory", "diagnosis", "insuranceID"],
-  "unmaskRoles": ["admin", "doctor", "nurse"],
+  "unmask_roles": ["admin", "doctor", "nurse"],
   "conditions": [
     "trustScore > 90 && role != 'auditor'",
     "trustScore > 85 && role == 'doctor'",

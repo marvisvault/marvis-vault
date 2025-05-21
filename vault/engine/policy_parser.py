@@ -27,8 +27,8 @@ def load_policy(file_path: Union[str, Path]) -> Dict[str, Any]:
         Dict containing the parsed policy
         
     Raises:
-        ValueError: If the file format is invalid
         FileNotFoundError: If the file doesn't exist
+        ValueError: If the file format is invalid or policy validation fails
     """
     path = Path(file_path)
     if not path.exists():
