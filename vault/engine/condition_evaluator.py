@@ -111,7 +111,6 @@ def normalize_condition(condition: str) -> str:
     condition = re.sub(r'!==', ' != ', condition)        # !== to !=
     condition = re.sub(r'(?<![=!<>])\|\|(?![=|])', ' or ', condition)  # || to or
     condition = re.sub(r'(?<![=!<>])&&(?![&])', ' and ', condition)    # && to and
-    condition = re.sub(r'(?<![\w!])!(?![=\w])', 'not ', condition)     # ! to not, except !=
     
     # Clean up any double spaces
     condition = re.sub(r'\s+', ' ', condition)

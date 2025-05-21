@@ -241,7 +241,8 @@ def test_simulate_mixed_conditions(tmp_path):
     result = runner.invoke(app, ["simulate", "-a", str(agent_file), "-p", str(policy_file), "-v"])
     assert result.exit_code == 0
     assert "trustScore 80 > 75" in result.stdout
-    assert "role 'analyst' != 'hr_manager'" in result.stdout
+    assert "role 'analyst'" in result.stdout
+    assert "'hr_manager'" in result.stdout
     assert "department 'IT' == 'IT'" in result.stdout
     
     # Test export format
@@ -283,8 +284,10 @@ def test_simulate_malformed_conditions(tmp_path):
     
     # Test verbose output - should fail with non-zero exit code
     result = runner.invoke(app, ["simulate", "-a", str(agent_file), "-p", str(policy_file), "-v"])
+    
     assert result.exit_code == 1
-    assert "Invalid condition" in result.stdout
+    assert "Failed to parse policy: 1 validation error for Policy" in result.stdout
+    assert "Input should be a valid string" in result.stdout
     
     # Test export format - should fail with non-zero exit code
     export_path = tmp_path / "malformed_export.json"

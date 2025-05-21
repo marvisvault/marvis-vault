@@ -45,7 +45,7 @@ def evaluate(context: Dict[str, Any], policy_path: str) -> EvaluationResult:
     if context.get("role") in policy.unmask_roles:
         return EvaluationResult(
             success=True,
-            reason=f"Role {context.get('role')} is in unmask_roles - skipping condition evaluation",
+            reason=f"Unmasked for role '{context.get('role')}'",
             fields=[],
             condition_results=[],
             passed_conditions=[],
