@@ -236,13 +236,49 @@ def redact(
             console.print("[red]Error: Invalid policy structure[/red]")
             sys.exit(1)
         
-        # Read agent context if provided
+        # Read and validate agent context if provided
         agent_context = None
         if agent:
             try:
-                agent_context = json.loads(agent.read_text())
-            except json.JSONDecodeError:
-                console.print("[red]Error: Agent file must be valid JSON[/red]")
+                content = agent.read_text()
+                if not content.strip():
+                    raise ValueError("Agent file is empty")
+                    
+                agent_context = json.loads(content)
+                
+                # Validate it's a dictionary
+                if not isinstance(agent_context, dict):
+                    raise ValueError("Agent file must contain a JSON object (not array or string)")
+                    
+                # Validate required role field
+                if "role" not in agent_context:
+                    raise ValueError("Agent context must contain 'role' field")
+                    
+                # Validate role type and value
+                if not isinstance(agent_context["role"], str):
+                    raise ValueError(f"Agent 'role' must be a string, got {type(agent_context['role']).__name__}")
+                if not agent_context["role"].strip():
+                    raise ValueError("Agent 'role' cannot be empty")
+                    
+                # Validate trustScore if present (optional for redact)
+                if "trustScore" in agent_context and agent_context["trustScore"] is not None:
+                    # Reject boolean values explicitly
+                    if isinstance(agent_context["trustScore"], bool):
+                        raise ValueError("trustScore cannot be a boolean value")
+                        
+                    try:
+                        score = float(agent_context["trustScore"])
+                    except (TypeError, ValueError):
+                        raise ValueError(f"trustScore must be numeric, got {type(agent_context['trustScore']).__name__}")
+                    
+                    if score < 0 or score > 100:
+                        raise ValueError(f"trustScore must be between 0-100, got {score}")
+                        
+            except json.JSONDecodeError as e:
+                console.print(f"[red]Error: Invalid JSON in agent file - {str(e)}[/red]")
+                sys.exit(1)
+            except ValueError as e:
+                console.print(f"[red]Error: Invalid agent - {str(e)}[/red]")
                 sys.exit(1)
             except Exception as e:
                 console.print(f"[red]Error loading agent file: {str(e)}[/red]")

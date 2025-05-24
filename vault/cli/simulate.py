@@ -19,7 +19,15 @@ console = Console()
 def load_agent_context(agent_path: Path) -> dict:
     """Load agent context from JSON file."""
     try:
-        context = json.loads(agent_path.read_text())
+        content = agent_path.read_text()
+        if not content.strip():
+            raise ValueError("Agent file is empty")
+            
+        context = json.loads(content)
+        
+        # Validate it's a dictionary
+        if not isinstance(context, dict):
+            raise ValueError("Agent file must contain a JSON object (not array or string)")
         
         # Validate required fields
         if "role" not in context:
@@ -27,12 +35,25 @@ def load_agent_context(agent_path: Path) -> dict:
         if "trustScore" not in context:
             raise ValueError("Agent context must contain 'trustScore' field")
             
-        # Validate trustScore is numeric
-        try:
-            if context["trustScore"] is not None:
-                float(context["trustScore"])
-        except (TypeError, ValueError):
-            raise ValueError(f"trustScore must be numeric, got {type(context['trustScore'])}")
+        # Validate role type and value
+        if not isinstance(context["role"], str):
+            raise ValueError(f"Agent 'role' must be a string, got {type(context['role']).__name__}")
+        if not context["role"].strip():
+            raise ValueError("Agent 'role' cannot be empty")
+            
+        # Validate trustScore is numeric and in range
+        if context["trustScore"] is not None:
+            # Reject boolean values explicitly
+            if isinstance(context["trustScore"], bool):
+                raise ValueError("trustScore cannot be a boolean value")
+                
+            try:
+                score = float(context["trustScore"])
+            except (TypeError, ValueError):
+                raise ValueError(f"trustScore must be numeric, got {type(context['trustScore']).__name__}")
+            
+            if score < 0 or score > 100:
+                raise ValueError(f"trustScore must be between 0-100, got {score}")
             
         return context
     except json.JSONDecodeError as e:

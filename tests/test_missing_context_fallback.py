@@ -5,34 +5,25 @@ from vault.engine.condition_evaluator import evaluate_condition
 
 
 class TestMissingContextFallback:
-    """Test that missing context values default to false instead of throwing errors"""
+    """Test that missing context values cause ValueError exceptions (caught by SDK layer)"""
     
     def test_missing_trustscore_simple(self):
         """Test simple condition with missing trustScore"""
         context = {"role": "admin"}
         condition = "trustScore > 80"
         
-        # Should not raise an error, should return False
-        result, explanation, fields = evaluate_condition(condition, context)
-        
-        assert result is False
-        assert "missing" in explanation.lower()
-        # Note: fields_affected only includes fields that exist in context
-        assert fields == []
+        # Should raise ValueError for missing context key
+        with pytest.raises(ValueError, match="trustScore"):
+            evaluate_condition(condition, context)
     
     def test_missing_trustscore_with_and(self):
         """Test AND condition with missing trustScore"""
         context = {"role": "analyst"}
         condition = "role == 'analyst' && trustScore > 70"
         
-        # Even though role matches, missing trustScore should make it false
-        result, explanation, fields = evaluate_condition(condition, context)
-        
-        assert result is False
-        assert "missing" in explanation
-        # The exact format varies but should show both conditions
-        assert "analyst" in explanation
-        assert "trustScore" in explanation
+        # Should raise ValueError for missing trustScore in AND condition
+        with pytest.raises(ValueError, match="trustScore"):
+            evaluate_condition(condition, context)
     
     def test_missing_trustscore_with_or(self):
         """Test OR condition with missing trustScore"""
@@ -51,36 +42,27 @@ class TestMissingContextFallback:
         context = {"role": "user"}
         condition = "department == 'IT'"
         
-        # Missing department should default to false
-        result, explanation, fields = evaluate_condition(condition, context)
-        
-        assert result is False
-        assert "missing" in explanation.lower()
-        # fields_affected only includes fields that exist in context
-        assert fields == []
+        # Should raise ValueError for missing department
+        with pytest.raises(ValueError, match="department"):
+            evaluate_condition(condition, context)
     
     def test_numeric_comparison_with_missing_value(self):
         """Test numeric comparison with missing value"""
         context = {"name": "John"}
         condition = "age > 18"
         
-        # Missing age should default to false (safe for numeric comparisons)
-        result, explanation, fields = evaluate_condition(condition, context)
-        
-        assert result is False
-        assert "missing" in explanation.lower()
+        # Should raise ValueError for missing age
+        with pytest.raises(ValueError, match="age"):
+            evaluate_condition(condition, context)
     
     def test_multiple_missing_values(self):
         """Test condition with multiple missing values"""
         context = {"name": "Alice"}
         condition = "role == 'admin' && trustScore > 80"
         
-        # Both role and trustScore are missing
-        result, explanation, fields = evaluate_condition(condition, context)
-        
-        assert result is False
-        # Both values are missing, so no fields from context are used
-        assert fields == []
+        # Should raise ValueError for first missing value (role)
+        with pytest.raises(ValueError, match="role"):
+            evaluate_condition(condition, context)
     
     def test_existing_behavior_not_affected(self):
         """Test that existing behavior with all values present is not affected"""
