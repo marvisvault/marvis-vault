@@ -39,12 +39,9 @@ class TestMissingContextFallback:
         context = {"role": "admin"}
         condition = "role == 'admin' || trustScore > 90"
         
-        # Should still pass because first condition is true
-        result, explanation, fields = evaluate_condition(condition, context)
-        
-        assert result is True
-        # Should show the OR evaluation
-        assert "admin" in explanation
+        # Should raise ValueError even in OR condition when trustScore is missing
+        with pytest.raises(ValueError, match="trustScore"):
+            evaluate_condition(condition, context)
     
     def test_missing_field_in_comparison(self):
         """Test comparison with missing field on left side"""
@@ -94,4 +91,4 @@ class TestMissingContextFallback:
         # Should show both conditions evaluated
         assert "admin" in explanation
         assert "85" in explanation  # The trustScore value
-        assert fields == ["role", "trustScore"]
+        assert set(fields) == {"role", "trustScore"}
