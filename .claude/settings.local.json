@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(pip3 install:*)",
+      "Bash(grep:*)"
+    ],
+    "deny": []
+  }
+}

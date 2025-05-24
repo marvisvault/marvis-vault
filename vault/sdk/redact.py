@@ -252,11 +252,37 @@ def redact(content: str, policy: Dict[str, Any], context: Optional[Dict[str, Any
         result.line_mapping.clear()
         result.timestamp = datetime.now(timezone.utc).isoformat()
 
-    # Evaluate global conditions if context is provided
+    # Check if user's role has unmask permission
     if context is not None:
-        eval_result = evaluate(policy, context)
-        if not eval_result.get("status", False):
-            return result  # Policy condition not met — no redaction
+        user_role = context.get("role")
+        unmask_roles = policy.get("unmaskRoles", policy.get("unmask_roles", []))
+        if user_role and user_role in unmask_roles:
+            # User's role has permission - return unredacted content
+            return result
+    
+    # Evaluate global conditions if context is provided
+    if context is not None and "conditions" in policy and policy["conditions"]:
+        # For global conditions, we need to evaluate them properly
+        # If ANY condition passes, the user has access (no redaction needed)
+        try:
+            from vault.engine.condition_evaluator import evaluate_condition
+            any_condition_passed = False
+            for condition in policy["conditions"]:
+                try:
+                    result_cond, _, _ = evaluate_condition(condition, context)
+                    if result_cond:
+                        any_condition_passed = True
+                        break
+                except Exception:
+                    # Missing context values or errors = condition fails
+                    continue
+            
+            if any_condition_passed:
+                # User has permission - return unredacted content
+                return result
+        except Exception:
+            # Any error in evaluation = proceed with redaction (fail safe)
+            pass
 
     # Detect format and apply appropriate redaction
     is_json, parsed_json = detect_format(content)

@@ -1,0 +1,1 @@
+{"mask": ["email", "ssn"], "unmask_roles": ["admin"], "conditions": ["trustScore > 80"]} 
