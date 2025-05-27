@@ -2,7 +2,7 @@
 
 ## Current State vs Future Vision
 
-### ✅ OSS Features (Implemented)
+### OSS Features (Implemented)
 - Policy engine (mask, simulate)
 - Full CLI + Python SDK
 - Audit logging system
@@ -11,7 +11,7 @@
 - JSON/text redaction
 - Role-based access control
 
-### 🔒 Vault Plus Features (Commercial - To Build)
+### Vault Plus Features (Commercial - To Build)
 - Hosted API (FastAPI)
 - Secure role-based unmasking
 - Interactive TUI playground
@@ -294,10 +294,10 @@ async def redact_data(request: RedactRequest):
 │ │ }                            │ │                                        │ │
 │ └──────────────────────────────┘ └────────────────────────────────────────┘ │
 │ ┌─ Simulation Results ─────────┐ ┌─ Audit Log ──────────────────────────┐ │
-│ │ ✅ Policy Valid              │ │ 2024-01-15 10:30:21 - MASK - ssn     │ │
-│ │ 🔒 Fields Masked: ssn, cc    │ │ 2024-01-15 10:30:21 - MASK - cc      │ │
-│ │ 👤 Role: admin (allowed)     │ │ 2024-01-15 10:30:22 - UNMASK - ssn   │ │
-│ │ ⚡ Conditions: 1/1 passed    │ │                                      │ │
+│ │ Policy Valid              │ │ 2024-01-15 10:30:21 - MASK - ssn     │ │
+│ │ Fields Masked: ssn, cc    │ │ 2024-01-15 10:30:21 - MASK - cc      │ │
+│ │ Role: admin (allowed)     │ │ 2024-01-15 10:30:22 - UNMASK - ssn   │ │
+│ │ Conditions: 1/1 passed    │ │                                      │ │
 │ └──────────────────────────────┘ └────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ Ready | Ctrl+O: Open | Ctrl+S: Save | Ctrl+T: Test | F1: Help              │

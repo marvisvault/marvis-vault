@@ -1,0 +1,5 @@
+{
+  "role": "аdmin",
+  "trustScore": 95,
+  "comment": "First 'a' is Cyrillic а (U+0430), not Latin a"
+}

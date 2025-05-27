@@ -1,6 +1,10 @@
 """
 Security validators for agent context and input validation.
 Provides comprehensive validation to prevent security vulnerabilities.
+
+This module now acts as a compatibility layer that delegates to the new
+security module (vault.utils.security) for actual validation. This allows
+gradual migration while maintaining backward compatibility.
 """
 
 import math
@@ -8,20 +12,82 @@ import unicodedata
 from typing import Dict, Any, Optional, Union
 import re
 import sys
+import warnings
 
-# Security constants
+# Import from new security module
+try:
+    from .security import (
+        validate_agent_context as _validate_agent_context,
+        validate_role as _validate_role,
+        validate_trust_score as _validate_trust_score,
+        SecurityValidationError as _SecurityValidationError,
+        validate_json_depth,
+    )
+    # Also import error taxonomy for apps that need it
+    from .security.error_taxonomy import (
+        ValidationError,
+        ErrorCode,
+        ErrorCategory,
+        create_error
+    )
+    _NEW_MODULE_AVAILABLE = True
+except ImportError:
+    _NEW_MODULE_AVAILABLE = False
+    warnings.warn("New security module not available, using legacy validators", ImportWarning)
+
+# Security constants (kept for backward compatibility)
 MAX_CONTENT_SIZE = 10 * 1024 * 1024  # 10MB
 MAX_STRING_LENGTH = 10000  # 10KB for individual strings
 MAX_JSON_DEPTH = 100  # Prevent deeply nested JSON DoS
 SAFE_ROLES = {'user', 'analyst', 'manager', 'auditor', 'support', 'contractor', 'developer', 'executive'}
 
-class SecurityValidationError(ValueError):
-    """Raised when security validation fails."""
-    pass
+# Re-export SecurityValidationError for backward compatibility
+if _NEW_MODULE_AVAILABLE:
+    SecurityValidationError = _SecurityValidationError
+    # Also make taxonomy available for gradual migration
+    __all__ = [
+        'validate_agent_context',
+        'validate_role', 
+        'validate_trust_score',
+        'validate_json_depth',
+        'SecurityValidationError',
+        'ValidationError',
+        'ErrorCode',
+        'ErrorCategory',
+        'create_error'
+    ]
+else:
+    class SecurityValidationError(ValueError):
+        """Raised when security validation fails."""
+        pass
+    __all__ = [
+        'validate_agent_context',
+        'validate_role',
+        'validate_trust_score', 
+        'validate_json_depth',
+        'SecurityValidationError'
+    ]
 
 def validate_agent_context(context: Any, source: str = "agent") -> Dict[str, Any]:
     """
     Comprehensive security validation for agent context.
+    
+    IMPORTANT: This function now delegates to the new security module
+    which implements security-first validation. The behavior has changed:
+    - String trustScores are now converted to float
+    - Injection patterns are rejected
+    - Better error messages for specific failures
+    """
+    if _NEW_MODULE_AVAILABLE:
+        return _validate_agent_context(context, source)
+    
+    # Fallback to original implementation
+    return _validate_agent_context_legacy(context, source)
+
+
+def _validate_agent_context_legacy(context: Any, source: str = "agent") -> Dict[str, Any]:
+    """
+    Legacy implementation kept for reference/fallback.
     
     Args:
         context: The agent context to validate

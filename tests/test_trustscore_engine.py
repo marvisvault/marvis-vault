@@ -18,13 +18,13 @@ condition = "trustScore > 80"
 
 try:
     result, explanation, fields = evaluate_condition(condition, context)
-    print(f"✅ SUCCESS - No crash!")
+    print(f"PASS - No crash!")
     print(f"  Condition: {condition}")
     print(f"  Context: {context}")
     print(f"  Result: {result}")
     print(f"  Explanation: {explanation}")
 except Exception as e:
-    print(f"❌ FAILED with error: {e}")
+    print(f"FAIL - Error: {e}")
 
 # Test 2: Complex condition with missing trustScore
 print("\n\nTest 2: AND condition with missing trustScore")
@@ -33,13 +33,13 @@ condition2 = "role == 'analyst' && trustScore > 70"
 
 try:
     result, explanation, fields = evaluate_condition(condition2, context2)
-    print(f"✅ SUCCESS - No crash!")
+    print(f"PASS - No crash!")
     print(f"  Condition: {condition2}")
     print(f"  Context: {context2}")
     print(f"  Result: {result}")
     print(f"  Explanation: {explanation}")
 except Exception as e:
-    print(f"❌ FAILED with error: {e}")
+    print(f"FAIL - Error: {e}")
 
 # Test 3: Condition that should pass despite missing trustScore
 print("\n\nTest 3: OR condition where one side passes")
@@ -48,13 +48,13 @@ condition3 = "role == 'admin' || trustScore > 90"
 
 try:
     result, explanation, fields = evaluate_condition(condition3, context3)
-    print(f"✅ SUCCESS - No crash!")
+    print(f"PASS - No crash!")
     print(f"  Condition: {condition3}")
     print(f"  Context: {context3}")
     print(f"  Result: {result}")
     print(f"  Explanation: {explanation}")
 except Exception as e:
-    print(f"❌ FAILED with error: {e}")
+    print(f"FAIL - Error: {e}")
 
 print("\n" + "=" * 50)
 print("Summary: If all tests show SUCCESS, the fallback is working correctly!")

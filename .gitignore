@@ -28,3 +28,6 @@ cursor-notes.md
 .cursorrules
 .cursor/rules/rules.mdc
 marvis_vault.egg-info/
+
+# Claude artifacts
+.claude/

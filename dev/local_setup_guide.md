@@ -51,7 +51,7 @@ python --version
 
 If you don't have Python 3.11.9:
 - Download from: https://www.python.org/downloads/release/python-3119/
-- ⚠️ **Windows users**: Check "Add to PATH" during installation
+- **Windows users**: Check "Add to PATH" during installation
 
 #### Git Check
 ```bash

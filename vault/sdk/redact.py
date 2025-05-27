@@ -117,10 +117,22 @@ def detect_format(content: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
 def create_field_patterns(fields: List[str], aliases: Optional[Dict[str, List[str]]] = None) -> Dict[str, re.Pattern]:
     """Create case-insensitive regex patterns for each field with proper escaping."""
     patterns = {}
+    
+    # Limit number of patterns to prevent DoS
+    if len(fields) > 100:
+        raise RedactionError("policy", "Too many fields to mask (max 100)")
+    
     for field in fields:
-        # Handle wildcard patterns
+        # Limit field length
+        if len(field) > 100:
+            raise RedactionError("field", f"Field name too long: {field[:50]}...")
+        
+        # Handle wildcard patterns safely
         if "*" in field:
-            base = field.replace("*", ".*")
+            # Escape everything except the wildcard
+            parts = field.split("*")
+            escaped_parts = [re.escape(part) for part in parts]
+            base = ".*?".join(escaped_parts)  # Non-greedy matching
             pattern = rf"{base}\s*[:=]\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
         else:
             # Normalize field name to NFC form
@@ -128,7 +140,10 @@ def create_field_patterns(fields: List[str], aliases: Optional[Dict[str, List[st
             escaped_field = re.escape(normalized_field)
             pattern = rf"{escaped_field}\s*[:=]\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
         
-        patterns[field] = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        try:
+            patterns[field] = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        except re.error as e:
+            raise RedactionError("field", f"Invalid pattern for field '{field}': {str(e)}")
         
         # Add patterns for aliases if they exist
         if aliases and field in aliases:

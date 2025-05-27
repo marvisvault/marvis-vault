@@ -243,7 +243,7 @@ def simulate(
             console.print("\n[bold yellow]Warnings[/bold yellow]")
             warning_table = Table(show_header=False, box=None)
             for warning in result.skipped_conditions:
-                warning_table.add_row(Text("⚠", style="yellow"), Text(warning, style="yellow"))
+                warning_table.add_row(Text("WARNING", style="yellow"), Text(warning, style="yellow"))
             console.print(warning_table)
         
         # Display masking analysis

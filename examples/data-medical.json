@@ -1,0 +1,6 @@
+{
+  "patient_id": "P12345",
+  "diagnosis": "Type 2 Diabetes",
+  "medication": "Metformin",
+  "doctor": "Dr. Smith"
+}

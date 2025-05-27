@@ -1,0 +1,16 @@
+{
+  "mask": [
+    "ssn",
+    "email",
+    "phone",
+    "address"
+  ],
+  "unmask_roles": [
+    "admin",
+    "auditor"
+  ],
+  "conditions": [
+    "trustScore >= 80",
+    "role == 'manager' && trustScore >= 70"
+  ]
+}

@@ -240,16 +240,61 @@ def redact(
         agent_context = None
         if agent:
             try:
-                agent_context = json.loads(agent.read_text())
-            except json.JSONDecodeError:
-                console.print("[red]Error: Agent file must be valid JSON[/red]")
-                sys.exit(1)
+                # Import security validators
+                from ..utils.security_validators import (
+                    validate_agent_context, 
+                    validate_content_size,
+                    validate_json_depth,
+                    SecurityValidationError,
+                    sanitize_error_message
+                )
+                
+                # Read and validate size
+                agent_content = agent.read_text()
+                validate_content_size(agent_content)
+                
+                if not agent_content.strip():
+                    console.print("[red]Error: Agent file is empty[/red]")
+                    sys.exit(1)
+                
+                # Parse JSON
+                try:
+                    agent_context = json.loads(agent_content)
+                except json.JSONDecodeError as e:
+                    console.print(f"[red]Error: Invalid JSON in agent file: {sanitize_error_message(e)}[/red]")
+                    sys.exit(1)
+                
+                # Validate JSON depth
+                try:
+                    validate_json_depth(agent_context)
+                except SecurityValidationError as e:
+                    console.print(f"[red]Error: {str(e)}[/red]")
+                    sys.exit(1)
+                
+                # Comprehensive security validation (trustScore optional for redact)
+                try:
+                    agent_context = validate_agent_context(agent_context, source="agent-redact")
+                except SecurityValidationError as e:
+                    console.print(f"[red]Error: {str(e)}[/red]")
+                    sys.exit(1)
+                    
             except Exception as e:
-                console.print(f"[red]Error loading agent file: {str(e)}[/red]")
+                # Sanitize error message
+                safe_error = sanitize_error_message(e) if 'sanitize_error_message' in locals() else str(e)
+                console.print(f"[red]Error loading agent file: {safe_error}[/red]")
                 sys.exit(1)
         
-        # Read input
+        # Read input with size validation
         input_content = read_input(input)
+        
+        # Validate input size
+        try:
+            from ..utils.security_validators import validate_content_size
+            validate_content_size(input_content)
+        except Exception as e:
+            console.print(f"[red]Error: Input too large (max 10MB)[/red]")
+            sys.exit(1)
+        
         log_file = None
 
         # Prepare RedactionResult and optionally attach streaming logger

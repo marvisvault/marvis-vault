@@ -46,9 +46,9 @@ try:
     print(f"Result: {json.dumps(parsed, indent=2)}")
     
     if parsed.get("email") == "[REDACTED]" and parsed.get("ssn") == "[REDACTED]":
-        print("✅ GOOD: Sensitive data is redacted when trustScore is missing (SAFE BEHAVIOR)")
+        print("PASS: Sensitive data is redacted when trustScore is missing (SAFE BEHAVIOR)")
     else:
-        print("❌ BUG CONFIRMED: Sensitive data is NOT redacted when trustScore is missing!")
+        print("FAIL - BUG CONFIRMED: Sensitive data is NOT redacted when trustScore is missing!")
         print("This is a SECURITY ISSUE - data is exposed when it should be hidden!")
         
 except Exception as e:
@@ -64,9 +64,9 @@ try:
     print(f"Result: {json.dumps(parsed, indent=2)}")
     
     if parsed.get("email") != "[REDACTED]":
-        print("✅ GOOD: Data is visible when trustScore condition is met")
+        print("PASS: Data is visible when trustScore condition is met")
     else:
-        print("❌ Data is still redacted even though condition is met")
+        print("FAIL - Data is still redacted even though condition is met")
         
 except Exception as e:
     print(f"Error: {e}")
@@ -82,9 +82,9 @@ try:
     print(f"Result: {json.dumps(parsed, indent=2)}")
     
     if parsed.get("email") != "[REDACTED]":
-        print("✅ GOOD: Admin can see data even without trustScore")
+        print("PASS: Admin can see data even without trustScore")
     else:
-        print("❌ Admin role not working - data is still redacted")
+        print("FAIL - Admin role not working - data is still redacted")
         
 except Exception as e:
     print(f"Error: {e}")

@@ -1,0 +1,130 @@
+{
+  "customer_id": "CUST-2024-78432",
+  "personal_info": {
+    "first_name": "Jennifer",
+    "last_name": "Martinez",
+    "full_name": "Jennifer Marie Martinez",
+    "date_of_birth": "1985-03-14",
+    "age": 39,
+    "gender": "F",
+    "marital_status": "Married",
+    "ssn": "523-67-4821",
+    "drivers_license": "D4521789",
+    "passport_number": "US12345678"
+  },
+  "contact_info": {
+    "email": "jennifer.martinez@techcorp.com",
+    "personal_email": "jmartinez85@gmail.com",
+    "phone": "+1-555-234-5678",
+    "mobile": "+1-555-987-6543",
+    "address": {
+      "street": "742 Evergreen Terrace",
+      "unit": "Apt 3B",
+      "city": "Springfield",
+      "state": "IL",
+      "zip": "62701",
+      "country": "USA"
+    },
+    "emergency_contact": {
+      "name": "Michael Martinez",
+      "relationship": "Spouse",
+      "phone": "+1-555-345-6789"
+    }
+  },
+  "financial_info": {
+    "bank_name": "First National Bank",
+    "account_number": "****5678",
+    "routing_number": "021000021",
+    "credit_card_last4": "4532",
+    "credit_score": 742,
+    "annual_income": 85000,
+    "tax_id": "523-67-4821"
+  },
+  "employment": {
+    "employer": "TechCorp Solutions Inc.",
+    "position": "Senior Software Engineer",
+    "department": "Engineering",
+    "employee_id": "EMP-0012487",
+    "start_date": "2019-06-15",
+    "salary": 120000,
+    "manager": "Robert Chen",
+    "work_email": "j.martinez@techcorp.com",
+    "work_phone": "+1-555-234-1000 ext 4521"
+  },
+  "health_info": {
+    "blood_type": "O+",
+    "allergies": ["Penicillin", "Tree nuts"],
+    "medications": [
+      {
+        "name": "Lisinopril",
+        "dosage": "10mg",
+        "frequency": "Daily"
+      },
+      {
+        "name": "Metformin",
+        "dosage": "500mg",
+        "frequency": "Twice daily"
+      }
+    ],
+    "conditions": ["Type 2 Diabetes", "Hypertension"],
+    "primary_physician": "Dr. Sarah Johnson",
+    "insurance_provider": "BlueCross BlueShield",
+    "insurance_policy_number": "XYZ123456789",
+    "last_checkup": "2024-10-15"
+  },
+  "digital_footprint": {
+    "ip_address": "192.168.1.142",
+    "mac_address": "00:1B:44:11:3A:B7",
+    "device_id": "iPhone-JM-2023",
+    "browser_fingerprint": "mozilla/5.0-safari-webkit",
+    "cookies": {
+      "session_id": "sess_abc123xyz789",
+      "tracking_id": "UA-123456789-1"
+    },
+    "social_media": {
+      "linkedin": "linkedin.com/in/jennifermartinez",
+      "twitter": "@jmartinez_tech"
+    }
+  },
+  "behavioral_data": {
+    "purchase_history": [
+      {
+        "date": "2024-11-28",
+        "amount": 156.89,
+        "merchant": "Amazon",
+        "category": "Electronics"
+      },
+      {
+        "date": "2024-11-25",
+        "amount": 89.50,
+        "merchant": "Whole Foods",
+        "category": "Groceries"
+      }
+    ],
+    "location_history": [
+      {
+        "timestamp": "2024-11-30T09:15:00Z",
+        "latitude": 39.7817,
+        "longitude": -89.6501,
+        "place": "TechCorp Office"
+      }
+    ],
+    "search_queries": [
+      "best diabetes management apps",
+      "software engineering conferences 2025",
+      "Springfield IL restaurants"
+    ]
+  },
+  "compliance_metadata": {
+    "data_collected_date": "2024-11-30",
+    "consent_given": true,
+    "consent_timestamp": "2024-01-15T10:30:00Z",
+    "gdpr_status": "consented",
+    "ccpa_status": "opted_in",
+    "data_retention_period": "7 years",
+    "last_updated": "2024-11-30T14:22:00Z"
+  },
+  "internal_notes": "VIP customer - handle with care. Referred 5 new customers in 2024.",
+  "risk_score": 0.15,
+  "account_status": "active"
+}

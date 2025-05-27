@@ -41,14 +41,14 @@ try:
     engine = PolicyEngine([policy])
     result = engine.process(test_data)
     
-    print("✅ SUCCESS - No crash!")
+    print("PASS - No crash!")
     print(f"Result: {result}")
     print()
     print("Explanation: Since trustScore is missing, it defaults to false,")
     print("so the condition 'trustScore > 80' fails, and email remains redacted.")
     
 except Exception as e:
-    print("❌ FAILED - Got an error:")
+    print("FAIL - Got an error:")
     print(f"Error: {e}")
     print()
     print("This means the fallback is not working correctly.")
