@@ -1,130 +1,209 @@
 {
-  "customer_id": "CUST-2024-78432",
-  "personal_info": {
-    "first_name": "Jennifer",
-    "last_name": "Martinez",
-    "full_name": "Jennifer Marie Martinez",
-    "date_of_birth": "1985-03-14",
-    "age": 39,
-    "gender": "F",
-    "marital_status": "Married",
-    "ssn": "523-67-4821",
-    "drivers_license": "D4521789",
-    "passport_number": "US12345678"
+  "recordId": "REC-2024-78432",
+  "recordType": "customer_profile",
+  "lastModified": "2024-01-25T16:45:00Z",
+  "dataClassification": "PII-HIGH",
+  "customer": {
+    "customerId": "CUST-2024-78432",
+    "accountStatus": "active",
+    "accountTier": "premium",
+    "customerSince": "2019-06-15"
   },
-  "contact_info": {
-    "email": "jennifer.martinez@techcorp.com",
-    "personal_email": "jmartinez85@gmail.com",
-    "phone": "+1-555-234-5678",
-    "mobile": "+1-555-987-6543",
-    "address": {
-      "street": "742 Evergreen Terrace",
-      "unit": "Apt 3B",
-      "city": "Springfield",
+  "personalInformation": {
+    "fullName": "Jennifer Marie Martinez",
+    "firstName": "Jennifer",
+    "middleName": "Marie",
+    "lastName": "Martinez",
+    "preferredName": "Jen",
+    "dateOfBirth": "1985-03-14",
+    "placeOfBirth": "Chicago, IL",
+    "ssn": "523-67-4821",
+    "driversLicense": {
+      "number": "D4521789",
       "state": "IL",
-      "zip": "62701",
-      "country": "USA"
+      "expirationDate": "2026-03-14"
     },
-    "emergency_contact": {
-      "name": "Michael Martinez",
-      "relationship": "Spouse",
-      "phone": "+1-555-345-6789"
+    "passport": {
+      "number": "584739201",
+      "country": "USA",
+      "expirationDate": "2029-08-22"
     }
   },
-  "financial_info": {
-    "bank_name": "First National Bank",
-    "account_number": "****5678",
-    "routing_number": "021000021",
-    "credit_card_last4": "4532",
-    "credit_score": 742,
-    "annual_income": 85000,
-    "tax_id": "523-67-4821"
+  "contactInformation": {
+    "primaryEmail": "jennifer.martinez@email.com",
+    "workEmail": "j.martinez@techcorp.com",
+    "phoneNumbers": {
+      "home": "+1-555-234-5678",
+      "mobile": "+1-555-987-6543",
+      "work": "+1-555-234-1000 ext 4521"
+    },
+    "currentAddress": {
+      "street1": "742 Evergreen Terrace",
+      "street2": "Apt 3B",
+      "city": "Springfield",
+      "state": "IL",
+      "postalCode": "62701",
+      "country": "USA",
+      "county": "Sangamon",
+      "residenceSince": "2021-09-01"
+    },
+    "previousAddresses": [
+      {
+        "street1": "123 Oak Street",
+        "city": "Chicago",
+        "state": "IL",
+        "postalCode": "60601",
+        "residenceFrom": "2019-06-15",
+        "residenceTo": "2021-08-31"
+      }
+    ]
   },
-  "employment": {
-    "employer": "TechCorp Solutions Inc.",
-    "position": "Senior Software Engineer",
-    "department": "Engineering",
-    "employee_id": "EMP-0012487",
-    "start_date": "2019-06-15",
-    "salary": 120000,
-    "manager": "Robert Chen",
-    "work_email": "j.martinez@techcorp.com",
-    "work_phone": "+1-555-234-1000 ext 4521"
+  "employmentInformation": {
+    "currentEmployer": {
+      "companyName": "TechCorp Solutions Inc.",
+      "employeeId": "EMP-0012487",
+      "position": "Senior Software Engineer",
+      "department": "Platform Engineering",
+      "startDate": "2019-06-15",
+      "employmentType": "full-time",
+      "annualSalary": 145000,
+      "stockOptions": 5000,
+      "manager": {
+        "name": "Robert Chen",
+        "email": "r.chen@techcorp.com"
+      }
+    },
+    "previousEmployers": [
+      {
+        "companyName": "StartupXYZ",
+        "position": "Software Engineer",
+        "duration": "2017-2019",
+        "reasonForLeaving": "Career advancement"
+      }
+    ]
   },
-  "health_info": {
-    "blood_type": "O+",
-    "allergies": ["Penicillin", "Tree nuts"],
-    "medications": [
+  "financialProfile": {
+    "bankAccounts": [
+      {
+        "bankName": "First National Bank",
+        "accountType": "checking",
+        "accountNumber": "****5678",
+        "routingNumber": "021000021",
+        "accountStatus": "active"
+      },
+      {
+        "bankName": "First National Bank",
+        "accountType": "savings",
+        "accountNumber": "****9012",
+        "routingNumber": "021000021",
+        "balance": 45000
+      }
+    ],
+    "creditCards": [
+      {
+        "issuer": "Chase",
+        "lastFourDigits": "4532",
+        "creditLimit": 25000,
+        "currentBalance": 2340
+      }
+    ],
+    "investments": {
+      "totalValue": 125000,
+      "401kBalance": 85000,
+      "brokerageAccount": "Charles Schwab"
+    },
+    "creditScore": 742,
+    "annualIncome": 145000,
+    "netWorth": 215000
+  },
+  "healthInformation": {
+    "insuranceProvider": "BlueCross BlueShield",
+    "policyNumber": "BCB-2024-789456",
+    "groupNumber": "GRP-TECH-001",
+    "primaryCarePhysician": {
+      "name": "Dr. Sarah Johnson",
+      "practice": "Springfield Medical Group",
+      "phone": "+1-555-med-1234"
+    },
+    "emergencyContacts": [
+      {
+        "name": "Michael Martinez",
+        "relationship": "spouse",
+        "phone": "+1-555-345-6789",
+        "isPrimaryContact": true
+      },
+      {
+        "name": "Maria Rodriguez",
+        "relationship": "mother",
+        "phone": "+1-555-456-7890",
+        "isPrimaryContact": false
+      }
+    ],
+    "bloodType": "O+",
+    "knownAllergies": ["Penicillin", "Tree nuts", "Shellfish"],
+    "currentMedications": [
       {
         "name": "Lisinopril",
         "dosage": "10mg",
-        "frequency": "Daily"
-      },
-      {
-        "name": "Metformin",
-        "dosage": "500mg",
-        "frequency": "Twice daily"
+        "frequency": "once daily",
+        "prescribedBy": "Dr. Sarah Johnson",
+        "startDate": "2023-01-15"
       }
-    ],
-    "conditions": ["Type 2 Diabetes", "Hypertension"],
-    "primary_physician": "Dr. Sarah Johnson",
-    "insurance_provider": "BlueCross BlueShield",
-    "insurance_policy_number": "XYZ123456789",
-    "last_checkup": "2024-10-15"
-  },
-  "digital_footprint": {
-    "ip_address": "192.168.1.142",
-    "mac_address": "00:1B:44:11:3A:B7",
-    "device_id": "iPhone-JM-2023",
-    "browser_fingerprint": "mozilla/5.0-safari-webkit",
-    "cookies": {
-      "session_id": "sess_abc123xyz789",
-      "tracking_id": "UA-123456789-1"
-    },
-    "social_media": {
-      "linkedin": "linkedin.com/in/jennifermartinez",
-      "twitter": "@jmartinez_tech"
-    }
-  },
-  "behavioral_data": {
-    "purchase_history": [
-      {
-        "date": "2024-11-28",
-        "amount": 156.89,
-        "merchant": "Amazon",
-        "category": "Electronics"
-      },
-      {
-        "date": "2024-11-25",
-        "amount": 89.50,
-        "merchant": "Whole Foods",
-        "category": "Groceries"
-      }
-    ],
-    "location_history": [
-      {
-        "timestamp": "2024-11-30T09:15:00Z",
-        "latitude": 39.7817,
-        "longitude": -89.6501,
-        "place": "TechCorp Office"
-      }
-    ],
-    "search_queries": [
-      "best diabetes management apps",
-      "software engineering conferences 2025",
-      "Springfield IL restaurants"
     ]
   },
-  "compliance_metadata": {
-    "data_collected_date": "2024-11-30",
-    "consent_given": true,
-    "consent_timestamp": "2024-01-15T10:30:00Z",
-    "gdpr_status": "consented",
-    "ccpa_status": "opted_in",
-    "data_retention_period": "7 years",
-    "last_updated": "2024-11-30T14:22:00Z"
+  "digitalIdentity": {
+    "userAccounts": [
+      {
+        "platform": "company_portal",
+        "username": "jmartinez",
+        "accountCreated": "2019-06-15",
+        "lastLogin": "2024-01-25T14:30:00Z"
+      }
+    ],
+    "deviceInformation": [
+      {
+        "deviceType": "laptop",
+        "deviceId": "LAPTOP-JM-2023",
+        "operatingSystem": "macOS 14.2",
+        "lastSeen": "2024-01-25T16:00:00Z"
+      },
+      {
+        "deviceType": "mobile",
+        "deviceId": "IPHONE-JM-2023",
+        "operatingSystem": "iOS 17.2",
+        "lastSeen": "2024-01-25T16:30:00Z"
+      }
+    ],
+    "biometricData": {
+      "fingerprintHash": "REDACTED-HASH-VALUE",
+      "faceIdEnabled": true,
+      "lastUpdated": "2023-12-01"
+    }
   },
-  "internal_notes": "VIP customer - handle with care. Referred 5 new customers in 2024.",
-  "risk_score": 0.15,
-  "account_status": "active"
+  "consentAndCompliance": {
+    "dataProcessingConsent": {
+      "given": true,
+      "timestamp": "2024-01-15T10:30:00Z",
+      "version": "2.1",
+      "withdrawable": true
+    },
+    "marketingPreferences": {
+      "emailMarketing": false,
+      "smsMarketing": false,
+      "pushNotifications": true,
+      "dataSharing": false
+    },
+    "gdprRights": {
+      "dataPortabilityRequested": false,
+      "rightToErasureRequested": false,
+      "dataAccessRequested": true,
+      "lastAccessRequest": "2023-11-15"
+    }
+  },
+  "riskAssessment": {
+    "riskScore": 0.15,
+    "riskFactors": [],
+    "lastAssessment": "2024-01-20",
+    "fraudAlerts": []
+  }
 }

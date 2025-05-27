@@ -1,0 +1,237 @@
+{
+  "employees": [
+    {
+      "employeeId": "EMP-2020-001",
+      "personalInfo": {
+        "firstName": "James",
+        "lastName": "Wilson",
+        "middleName": "Robert",
+        "dateOfBirth": "1982-05-14",
+        "ssn": "345-67-8901",
+        "driverLicense": "D1234567",
+        "passportNumber": "P98765432"
+      },
+      "contact": {
+        "personalEmail": "jwilson.personal@email.com",
+        "workEmail": "james.wilson@techcorp.com",
+        "personalPhone": "+1-555-1234",
+        "workPhone": "+1-555-5000 ext 123",
+        "emergencyContact": {
+          "name": "Sarah Wilson",
+          "relationship": "Spouse",
+          "phone": "+1-555-1235"
+        },
+        "address": {
+          "street": "456 Elm Street",
+          "city": "Palo Alto",
+          "state": "CA",
+          "zipCode": "94301"
+        }
+      },
+      "employment": {
+        "department": "Engineering",
+        "position": "Senior Software Engineer",
+        "managerId": "EMP-2018-005",
+        "startDate": "2020-03-15",
+        "employmentType": "Full-Time",
+        "workLocation": "Hybrid",
+        "securityClearance": "Confidential"
+      },
+      "compensation": {
+        "baseSalary": 185000,
+        "bonus": 37000,
+        "stockOptions": {
+          "granted": 10000,
+          "vested": 2500,
+          "strikePrice": 45.00
+        },
+        "benefits": {
+          "healthPlan": "Premium PPO",
+          "dental": true,
+          "vision": true,
+          "401k": {
+            "employeeContribution": 6,
+            "employerMatch": 4
+          }
+        }
+      },
+      "performanceReviews": [
+        {
+          "year": 2023,
+          "rating": 4.5,
+          "notes": "Exceeds expectations, strong technical leadership"
+        }
+      ],
+      "bankingInfo": {
+        "accountNumber": "****6789",
+        "routingNumber": "121000248",
+        "accountType": "Checking"
+      }
+    },
+    {
+      "employeeId": "EMP-2022-045",
+      "personalInfo": {
+        "firstName": "Emily",
+        "lastName": "Zhang",
+        "middleName": "Wei",
+        "dateOfBirth": "1995-09-22",
+        "ssn": "567-89-0123",
+        "driverLicense": "D7654321",
+        "visaStatus": "H1-B",
+        "visaExpiry": "2025-10-01"
+      },
+      "contact": {
+        "personalEmail": "emily.zhang95@email.com",
+        "workEmail": "emily.zhang@techcorp.com",
+        "personalPhone": "+1-555-2345",
+        "workPhone": "+1-555-5000 ext 456",
+        "emergencyContact": {
+          "name": "Li Zhang",
+          "relationship": "Parent",
+          "phone": "+86-138-0000-0000"
+        },
+        "address": {
+          "street": "789 Market Street",
+          "unit": "Apt 2201",
+          "city": "San Francisco",
+          "state": "CA",
+          "zipCode": "94103"
+        }
+      },
+      "employment": {
+        "department": "Data Science",
+        "position": "Machine Learning Engineer",
+        "managerId": "EMP-2019-012",
+        "startDate": "2022-06-01",
+        "employmentType": "Full-Time",
+        "workLocation": "Office",
+        "securityClearance": "None"
+      },
+      "compensation": {
+        "baseSalary": 165000,
+        "bonus": 24750,
+        "stockOptions": {
+          "granted": 5000,
+          "vested": 1250,
+          "strikePrice": 52.00
+        },
+        "benefits": {
+          "healthPlan": "Standard HMO",
+          "dental": true,
+          "vision": true,
+          "401k": {
+            "employeeContribution": 5,
+            "employerMatch": 4
+          }
+        }
+      },
+      "performanceReviews": [
+        {
+          "year": 2023,
+          "rating": 4.2,
+          "notes": "Strong performer, excellent ML model deployment skills"
+        }
+      ],
+      "bankingInfo": {
+        "accountNumber": "****3456",
+        "routingNumber": "026009593",
+        "accountType": "Checking"
+      },
+      "education": [
+        {
+          "degree": "MS Computer Science",
+          "university": "Stanford University",
+          "graduationYear": 2022
+        },
+        {
+          "degree": "BS Computer Science",
+          "university": "UC Berkeley",
+          "graduationYear": 2020
+        }
+      ]
+    },
+    {
+      "employeeId": "EMP-2023-089",
+      "personalInfo": {
+        "firstName": "Marcus",
+        "lastName": "Johnson",
+        "dateOfBirth": "1988-12-03",
+        "ssn": "678-90-1234",
+        "driverLicense": "D9876543"
+      },
+      "contact": {
+        "personalEmail": "mjohnson88@email.com",
+        "workEmail": "marcus.johnson@techcorp.com",
+        "personalPhone": "+1-555-3456",
+        "workPhone": "+1-555-5000 ext 789",
+        "emergencyContact": {
+          "name": "Patricia Johnson",
+          "relationship": "Mother",
+          "phone": "+1-555-3457"
+        },
+        "address": {
+          "street": "321 Pine Street",
+          "city": "Oakland",
+          "state": "CA",
+          "zipCode": "94612"
+        }
+      },
+      "employment": {
+        "department": "Sales",
+        "position": "Senior Account Executive",
+        "managerId": "EMP-2021-033",
+        "startDate": "2023-01-15",
+        "employmentType": "Full-Time",
+        "workLocation": "Remote",
+        "territory": "West Coast"
+      },
+      "compensation": {
+        "baseSalary": 120000,
+        "commission": {
+          "targetAnnual": 120000,
+          "ytdEarned": 95000
+        },
+        "stockOptions": {
+          "granted": 3000,
+          "vested": 0,
+          "strikePrice": 58.00
+        },
+        "benefits": {
+          "healthPlan": "Premium PPO",
+          "dental": true,
+          "vision": true,
+          "401k": {
+            "employeeContribution": 8,
+            "employerMatch": 4
+          },
+          "carAllowance": 500
+        }
+      },
+      "performanceReviews": [
+        {
+          "year": 2023,
+          "rating": 4.8,
+          "notes": "Top performer, 150% of quota achievement"
+        }
+      ],
+      "bankingInfo": {
+        "accountNumber": "****4567",
+        "routingNumber": "321081669",
+        "accountType": "Checking"
+      },
+      "salesMetrics": {
+        "quotaAttainment": 150,
+        "dealsClosedYTD": 45,
+        "pipelineValue": 2500000,
+        "topAccounts": ["Microsoft", "Google", "Amazon"]
+      }
+    }
+  ],
+  "metadata": {
+    "exportDate": "2024-01-25T18:00:00Z",
+    "recordCount": 3,
+    "dataClassification": "Confidential - HR Data",
+    "complianceStandards": ["SOC2", "ISO27001", "CCPA"],
+    "lastAudit": "2023-12-15T00:00:00Z"
+  }
+}

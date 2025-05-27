@@ -1,6 +1,345 @@
 {
-  "patient_id": "P12345",
-  "diagnosis": "Type 2 Diabetes",
-  "medication": "Metformin",
-  "doctor": "Dr. Smith"
+  "recordType": "electronic_health_record",
+  "recordId": "EHR-2024-001847",
+  "lastUpdated": "2024-01-25T14:30:00Z",
+  "dataClassification": "PHI-HIPAA",
+  "facilityInformation": {
+    "hospitalName": "Springfield General Hospital",
+    "hospitalId": "SGH-001",
+    "department": "Internal Medicine",
+    "npiNumber": "1234567890"
+  },
+  "patientInformation": {
+    "patientId": "PAT-2024-001847",
+    "medicalRecordNumber": "MRN-789456123",
+    "demographics": {
+      "fullName": "Robert James Wilson",
+      "firstName": "Robert",
+      "middleName": "James",
+      "lastName": "Wilson",
+      "preferredName": "Bob",
+      "dateOfBirth": "1965-07-22",
+      "age": 58,
+      "gender": "Male",
+      "maritalStatus": "Married",
+      "race": "Caucasian",
+      "ethnicity": "Non-Hispanic",
+      "preferredLanguage": "English",
+      "ssn": "456-78-9123"
+    },
+    "contactInformation": {
+      "address": {
+        "street": "456 Oak Avenue",
+        "city": "Springfield",
+        "state": "IL",
+        "zipCode": "62704"
+      },
+      "phoneNumbers": {
+        "home": "+1-555-345-6789",
+        "mobile": "+1-555-987-6543",
+        "work": "+1-555-234-5678"
+      },
+      "email": "robert.wilson@email.com",
+      "emergencyContact": {
+        "name": "Sarah Wilson",
+        "relationship": "Spouse",
+        "phone": "+1-555-345-6790",
+        "alternatePhone": "+1-555-876-5432"
+      }
+    }
+  },
+  "insuranceInformation": {
+    "primaryInsurance": {
+      "provider": "BlueCross BlueShield",
+      "policyNumber": "BCB123456789",
+      "groupNumber": "GRP-CORP-4567",
+      "subscriberId": "SUB-789456",
+      "subscriberName": "Robert J Wilson",
+      "effectiveDate": "2023-01-01",
+      "copay": {
+        "primaryCare": 25,
+        "specialist": 50,
+        "emergencyRoom": 150
+      }
+    },
+    "secondaryInsurance": null,
+    "medicareNumber": null,
+    "medicaidNumber": null
+  },
+  "medicalHistory": {
+    "chiefComplaint": "Follow-up for diabetes management and hypertension control",
+    "historyOfPresentIllness": "58-year-old male with Type 2 Diabetes diagnosed in 2018, hypertension diagnosed in 2015. Reports good medication compliance. Checking blood glucose twice daily with readings mostly 110-140 mg/dL. Occasional episodes of lightheadedness in the morning.",
+    "pastMedicalHistory": [
+      {
+        "condition": "Type 2 Diabetes Mellitus",
+        "diagnosisDate": "2018-03-15",
+        "icdCode": "E11.9",
+        "status": "active"
+      },
+      {
+        "condition": "Essential Hypertension",
+        "diagnosisDate": "2015-06-22",
+        "icdCode": "I10",
+        "status": "active"
+      },
+      {
+        "condition": "Hyperlipidemia",
+        "diagnosisDate": "2019-09-10",
+        "icdCode": "E78.5",
+        "status": "active"
+      },
+      {
+        "condition": "Appendectomy",
+        "procedureDate": "1995-08-12",
+        "cptCode": "44970",
+        "status": "resolved"
+      }
+    ],
+    "familyHistory": [
+      {
+        "relationship": "Father",
+        "condition": "Coronary Artery Disease",
+        "ageAtDiagnosis": 62,
+        "deceased": true,
+        "ageAtDeath": 74
+      },
+      {
+        "relationship": "Mother",
+        "condition": "Type 2 Diabetes",
+        "ageAtDiagnosis": 55,
+        "deceased": false,
+        "currentAge": 82
+      },
+      {
+        "relationship": "Brother",
+        "condition": "Hypertension",
+        "ageAtDiagnosis": 50
+      }
+    ],
+    "socialHistory": {
+      "smokingStatus": "Former smoker",
+      "smokingDetails": "Quit 2010, 20 pack-year history",
+      "alcoholUse": "Occasional",
+      "alcoholDetails": "1-2 drinks per week",
+      "drugUse": "Denies",
+      "exerciseFrequency": "3 times per week",
+      "exerciseType": "Walking 30 minutes",
+      "occupation": "Software Engineering Manager",
+      "occupationalExposures": "None significant"
+    }
+  },
+  "allergiesAndAdverseReactions": [
+    {
+      "allergen": "Penicillin",
+      "reaction": "Rash",
+      "severity": "Moderate",
+      "onsetDate": "1985-03-15"
+    },
+    {
+      "allergen": "Sulfa drugs",
+      "reaction": "Hives",
+      "severity": "Mild",
+      "onsetDate": "2005-07-22"
+    }
+  ],
+  "currentMedications": [
+    {
+      "medicationName": "Metformin",
+      "dosage": "1000mg",
+      "route": "oral",
+      "frequency": "twice daily",
+      "prescribedDate": "2023-10-15",
+      "prescribingProvider": "Dr. Emily Chen",
+      "indication": "Type 2 Diabetes",
+      "ndcCode": "00378-7122-01"
+    },
+    {
+      "medicationName": "Lisinopril",
+      "dosage": "20mg",
+      "route": "oral",
+      "frequency": "once daily",
+      "prescribedDate": "2023-10-15",
+      "prescribingProvider": "Dr. Emily Chen",
+      "indication": "Hypertension",
+      "ndcCode": "00378-0775-01"
+    },
+    {
+      "medicationName": "Atorvastatin",
+      "dosage": "40mg",
+      "route": "oral",
+      "frequency": "once daily at bedtime",
+      "prescribedDate": "2023-10-15",
+      "prescribingProvider": "Dr. Emily Chen",
+      "indication": "Hyperlipidemia",
+      "ndcCode": "00071-0155-23"
+    },
+    {
+      "medicationName": "Aspirin",
+      "dosage": "81mg",
+      "route": "oral",
+      "frequency": "once daily",
+      "prescribedDate": "2023-10-15",
+      "prescribingProvider": "Dr. Emily Chen",
+      "indication": "Cardiovascular prophylaxis",
+      "ndcCode": "00536-3086-10"
+    }
+  ],
+  "vitalSigns": {
+    "recordedDateTime": "2024-01-25T10:15:00Z",
+    "bloodPressure": {
+      "systolic": 138,
+      "diastolic": 88,
+      "unit": "mmHg",
+      "position": "sitting",
+      "arm": "right"
+    },
+    "heartRate": {
+      "value": 78,
+      "unit": "bpm",
+      "rhythm": "regular"
+    },
+    "temperature": {
+      "value": 98.6,
+      "unit": "F",
+      "method": "oral"
+    },
+    "respiratoryRate": {
+      "value": 16,
+      "unit": "breaths/min"
+    },
+    "oxygenSaturation": {
+      "value": 98,
+      "unit": "%",
+      "onRoomAir": true
+    },
+    "height": {
+      "value": 70,
+      "unit": "inches"
+    },
+    "weight": {
+      "value": 195,
+      "unit": "pounds"
+    },
+    "bmi": {
+      "value": 28.0,
+      "category": "overweight"
+    }
+  },
+  "laboratoryResults": [
+    {
+      "testName": "Hemoglobin A1c",
+      "result": "7.2",
+      "unit": "%",
+      "referenceRange": "< 5.7",
+      "abnormalFlag": "High",
+      "collectionDate": "2024-01-20",
+      "loincCode": "4548-4"
+    },
+    {
+      "testName": "Fasting Glucose",
+      "result": "132",
+      "unit": "mg/dL",
+      "referenceRange": "70-100",
+      "abnormalFlag": "High",
+      "collectionDate": "2024-01-20",
+      "loincCode": "1558-6"
+    },
+    {
+      "testName": "Total Cholesterol",
+      "result": "185",
+      "unit": "mg/dL",
+      "referenceRange": "< 200",
+      "abnormalFlag": "Normal",
+      "collectionDate": "2024-01-20",
+      "loincCode": "2093-3"
+    },
+    {
+      "testName": "LDL Cholesterol",
+      "result": "105",
+      "unit": "mg/dL",
+      "referenceRange": "< 100",
+      "abnormalFlag": "High",
+      "collectionDate": "2024-01-20",
+      "loincCode": "13457-7"
+    },
+    {
+      "testName": "Creatinine",
+      "result": "1.1",
+      "unit": "mg/dL",
+      "referenceRange": "0.7-1.3",
+      "abnormalFlag": "Normal",
+      "collectionDate": "2024-01-20",
+      "loincCode": "2160-0"
+    }
+  ],
+  "assessmentAndPlan": {
+    "assessment": [
+      {
+        "diagnosis": "Type 2 diabetes mellitus without complications",
+        "icdCode": "E11.9",
+        "status": "stable but above goal"
+      },
+      {
+        "diagnosis": "Essential hypertension",
+        "icdCode": "I10",
+        "status": "not at goal"
+      },
+      {
+        "diagnosis": "Mixed hyperlipidemia",
+        "icdCode": "E78.2",
+        "status": "improving"
+      }
+    ],
+    "plan": [
+      {
+        "problem": "Diabetes",
+        "intervention": "Increase Metformin to 1000mg twice daily. Discussed importance of diet and exercise. Referral to diabetes educator for refresher. Recheck A1c in 3 months."
+      },
+      {
+        "problem": "Hypertension",
+        "intervention": "Increase Lisinopril to 30mg daily. Home blood pressure monitoring recommended. Follow up in 4 weeks for BP check."
+      },
+      {
+        "problem": "Hyperlipidemia",
+        "intervention": "Continue current statin therapy. Recheck lipid panel in 6 months."
+      }
+    ]
+  },
+  "providerInformation": {
+    "attendingPhysician": {
+      "name": "Dr. Emily Chen",
+      "npiNumber": "1234567890",
+      "specialty": "Internal Medicine",
+      "deaNumber": "BC1234567"
+    },
+    "consultingPhysicians": [],
+    "nursingStaff": [
+      {
+        "name": "Jennifer Martinez, RN",
+        "licenseNumber": "RN-123456"
+      }
+    ]
+  },
+  "visitInformation": {
+    "visitDate": "2024-01-25",
+    "visitType": "Office Visit - Established Patient",
+    "visitReason": "Routine follow-up",
+    "cptCodes": ["99214"],
+    "duration": "20 minutes",
+    "nextAppointment": "2024-04-25"
+  },
+  "consentAndPrivacy": {
+    "hipaaConsentSigned": true,
+    "hipaaConsentDate": "2023-01-15",
+    "researchConsent": false,
+    "advanceDirective": true,
+    "advanceDirectiveDate": "2022-06-01",
+    "authorizedContacts": [
+      {
+        "name": "Sarah Wilson",
+        "relationship": "Spouse",
+        "canAccessRecords": true
+      }
+    ]
+  }
 }

@@ -1,0 +1,126 @@
+{
+  "patients": [
+    {
+      "patientId": "P-2024-0001",
+      "name": "Sarah Johnson",
+      "dateOfBirth": "1985-03-15",
+      "ssn": "123-45-6789",
+      "medicalRecordNumber": "MRN-789456",
+      "contact": {
+        "phone": "+1-555-0123",
+        "email": "sarah.johnson@email.com",
+        "address": {
+          "street": "123 Oak Street",
+          "city": "San Francisco",
+          "state": "CA",
+          "zipCode": "94102"
+        }
+      },
+      "insurance": {
+        "provider": "HealthCare Plus",
+        "policyNumber": "HCP-123456789",
+        "groupNumber": "GRP-TECH-001"
+      },
+      "medicalHistory": {
+        "allergies": ["Penicillin", "Shellfish"],
+        "currentMedications": [
+          {
+            "name": "Lisinopril",
+            "dosage": "10mg",
+            "frequency": "Once daily"
+          },
+          {
+            "name": "Metformin",
+            "dosage": "500mg",
+            "frequency": "Twice daily"
+          }
+        ],
+        "conditions": ["Type 2 Diabetes", "Hypertension"],
+        "lastVisit": "2024-01-10"
+      },
+      "emergencyContact": {
+        "name": "Michael Johnson",
+        "relationship": "Spouse",
+        "phone": "+1-555-0124"
+      }
+    },
+    {
+      "patientId": "P-2024-0002",
+      "name": "Robert Chen",
+      "dateOfBirth": "1972-11-22",
+      "ssn": "987-65-4321",
+      "medicalRecordNumber": "MRN-456123",
+      "contact": {
+        "phone": "+1-555-0456",
+        "email": "r.chen@techcorp.com",
+        "address": {
+          "street": "456 Market Street",
+          "city": "San Francisco",
+          "state": "CA",
+          "zipCode": "94105"
+        }
+      },
+      "insurance": {
+        "provider": "UnitedHealth",
+        "policyNumber": "UH-987654321",
+        "groupNumber": "GRP-CORP-002"
+      },
+      "medicalHistory": {
+        "allergies": [],
+        "currentMedications": [
+          {
+            "name": "Atorvastatin",
+            "dosage": "20mg",
+            "frequency": "Once daily at bedtime"
+          }
+        ],
+        "conditions": ["High Cholesterol"],
+        "lastVisit": "2023-12-15"
+      },
+      "emergencyContact": {
+        "name": "Lisa Chen",
+        "relationship": "Sister",
+        "phone": "+1-555-0457"
+      }
+    },
+    {
+      "patientId": "P-2024-0003",
+      "name": "Maria Garcia",
+      "dateOfBirth": "1990-07-08",
+      "ssn": "456-78-9123",
+      "medicalRecordNumber": "MRN-321789",
+      "contact": {
+        "phone": "+1-555-0789",
+        "email": "mgarcia@university.edu",
+        "address": {
+          "street": "789 College Avenue",
+          "city": "Berkeley",
+          "state": "CA",
+          "zipCode": "94720"
+        }
+      },
+      "insurance": {
+        "provider": "Blue Cross Blue Shield",
+        "policyNumber": "BCBS-456789123",
+        "groupNumber": "GRP-EDU-003"
+      },
+      "medicalHistory": {
+        "allergies": ["Latex", "Codeine"],
+        "currentMedications": [],
+        "conditions": ["Asthma"],
+        "lastVisit": "2024-01-20"
+      },
+      "emergencyContact": {
+        "name": "Carlos Garcia",
+        "relationship": "Father",
+        "phone": "+1-555-0790"
+      }
+    }
+  ],
+  "metadata": {
+    "exportDate": "2024-01-25T14:30:00Z",
+    "recordCount": 3,
+    "dataClassification": "PHI - Protected Health Information",
+    "complianceStandards": ["HIPAA", "HITECH"]
+  }
+}

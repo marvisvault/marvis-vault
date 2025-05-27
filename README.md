@@ -33,93 +33,158 @@ git clone https://github.com/abbybiswas/marvis-vault-oss.git
 cd marvis-vault-oss
 pip install -e .
 ```
-> Note: Please go to [Local Setup Guide](SETUP.md) if you have issues to make sure your enviroment is setup properly before running `pip install -e .` 
+> See [Local Setup Guide](SETUP.md) for detailed environment setup instructions
 
-## CLI Usage
+## Quick Start
+
+### CLI Usage
 
 ```bash
-vault simulate --agent examples/agents/agent.json --policy vault/templates/gdpr-lite.json
+# Simulate policy evaluation
+vault simulate --agent examples/agent.json --policy policies/pii-basic.json
+
+# Redact sensitive data
+vault redact --agent examples/agent.json --data examples/data-pii.json --policy policies/gdpr-lite.json
+
+# View audit logs
+vault audit --log logs/audit.log --format table
 ```
 
-Or with shorthand flags:
-```bash
-vault simulate -a examples/agents/agent.json -p vault/templates/pii-basic.json
-```
-## Output Example
+### Python SDK
 
-```txt
-Fields to redact: email, phone  
-Role: auditor | trustScore: 70  
-Condition failed: trustScore > 80  
+```python
+from vault.sdk import redact
+from vault.engine.policy_parser import load_policy
+
+# Load policy and agent context
+policy = load_policy("policies/healthcare.json")
+agent = {"role": "analyst", "trustScore": 75}
+
+# Redact sensitive data
+result = redact(
+    content='{"name": "John Doe", "ssn": "123-45-6789"}',
+    policy=policy,
+    agent_context=agent
+)
+
+print(result.content)  # {"name": "John Doe", "ssn": "[REDACTED]"}
 ```
 
 ---
 
-## Other Commands
+## Project Structure
+
+```
+marvis-vault-oss/
+├── vault/                 # Core library code
+│   ├── cli/              # CLI commands
+│   ├── engine/           # Policy engine
+│   ├── sdk/              # Python SDK
+│   └── utils/            # Security utilities
+├── examples/             # Simple examples to get started
+├── policies/             # Pre-built policy templates
+├── tests/                # Test suite
+├── dev/                  # Development resources
+│   ├── test-data/        # Comprehensive test data
+│   ├── scripts/          # Testing & demo scripts
+│   └── instructions/     # Development guides
+└── docs/                 # Documentation
+```
+
+---
+
+## Policy Templates
+
+Ready-to-use templates in `policies/`:
+
+- **pii-basic.json** — Basic PII protection (name, email, SSN)
+- **healthcare.json** — HIPAA-compliant medical records
+- **finance-trust.json** — Financial data with trust-based access
+- **gdpr-lite.json** — GDPR-inspired data protection
+
+---
+
+## Advanced Testing
+
+For production-grade testing:
 
 ```bash
-vault redact --input input.txt --policy policies/finance.json
-vault audit --log vault.log --format csv
-vault lint --policy policies/healthcare.yaml
+# Run comprehensive API tests
+python dev/scripts/api_test_runner.py
+
+# Test security hardening
+python -m pytest tests/security/ -v
+
+# Performance benchmarks
+python dev/scripts/benchmark.py
 ```
+
+See `dev/test-data/` for:
+- Production agent profiles
+- Industry-specific test data (healthcare, financial, HR)
+- Security attack vectors
+- Complex nested structures
 
 ---
 
 ## OSS vs Vault Plus
 
 | Feature                          | OSS | Vault Plus |
-|----------------------------------|--------|----------------|
-| Policy engine (mask, simulate)   | [x]     | [x]  
-| Full CLI + Python SDK            | [x]     | [x]  
-| Hosted API (FastAPI)             | [ ]     | [x]  
-| Secure role-based unmasking      | [ ]     | [x]  
-| Interactive TUI playground       | [ ]     | [x]  
-| Telemetry + usage analytics      | [ ]     | [x]  
-| Policy Marketplace (Q3 2024)     | [ ]     | [x]  
+|----------------------------------|-----|------------|
+| Policy engine (mask, simulate)   | [x] | [x]        |
+| Full CLI + Python SDK            | [x] | [x]        |
+| Hosted API (FastAPI)             | [ ] | [x]        |
+| Secure role-based unmasking      | [ ] | [x]        |
+| Interactive TUI playground       | [ ] | [x]        |
+| Telemetry + usage analytics      | [ ] | [x]        |
+| Policy Marketplace (Q3 2024)     | [ ] | [x]        |
 
 **Vault Plus is free during early access** — [Apply here](https://tally.so/r/3XNBgP)
 
 ---
 
-## Docs
+## Documentation
 
-- [Quickstart](docs/00_quickstart.md)
-- [CLI Interface](docs/02_cli_interface_.md)
-- [Tutorial Start](docs/01_index.md)
-
----
-
-## Built For
-
-- AI startups building agent copilots  
-- Compliance-conscious LLM apps  
-- Enterprises evaluating secure AI stacks  
-- Open-source hackers securing pipelines  
-
----
-
-## Tech Stack
-
-- Language: Python 3.10+  
-- CLI: [Typer](https://typer.tiangolo.com/)  
-- Policy Logic: Pydantic + safe condition parser (no `eval`)  
-- Output: Rich terminal formatting, structured JSONL logs  
-- Tests: `pytest`, `mypy`, `black`, `isort`  
+- [Quickstart Guide](docs/00_quickstart.md)
+- [CLI Reference](docs/02_cli_interface_.md)
+- [Policy Definition](docs/03_policy_definition_.md)
+- [API Documentation](docs/01_index.md)
 
 ---
 
 ## Contributing
-Pull requests welcome!
-See [CONTRIBUTING.md](CONTRIBUTING.md) and open issues — or suggest your own.
 
-By contributing, you agree your code may be used in both open-source and commercial offerings under the repository's license.
-
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-## About
+## Security
 
-**Marvis Vault** is built by [@abhigyanbiswas](https://www.linkedin.com/in/abhigyan-biswas/) to bring programmable trust to the age of agentic AI.
+This project includes security hardening against:
+- SQL/NoSQL injection
+- XSS attacks
+- Command injection
+- Path traversal
+- DoS attacks
+- Type confusion
+- Special value attacks (Infinity, NaN)
 
-Built in public. OSS first.  
-Try it: [marvisvault.com](https://marvisvault.com)
+See [SECURITY.md](SECURITY.md) for details.
+
+---
+
+## License
+
+MIT License - see [LICENSE.md](LICENSE.md)
+
+---
+
+## Support
+
+- GitHub Issues: [Report bugs or request features](https://github.com/abbybiswas/marvis-vault-oss/issues)
+- Documentation: [docs/](./docs/)
+- Community: Coming soon
+
+---
+
+Built with love by the Marvis team

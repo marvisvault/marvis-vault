@@ -1,8 +1,34 @@
 {
-    "role": "admin",
-    "trustScore": 85,
-    "context": {
-        "department": "IT",
-        "location": "US"
-    }
-} 
+  "role": "admin",
+  "trustScore": 92,
+  "userId": "ADM-2024-0089",
+  "username": "admin.wilson",
+  "department": "IT Security",
+  "title": "Security Administrator",
+  "clearanceLevel": "secret",
+  "authentication": {
+    "mfaEnabled": true,
+    "mfaType": "hardware_token",
+    "lastLogin": "2024-01-25T08:45:00Z",
+    "loginLocation": "10.0.1.50",
+    "sessionId": "sess_2024012508450089"
+  },
+  "permissions": {
+    "dataAccess": ["read", "write", "delete"],
+    "systemAccess": ["user_management", "audit_logs", "security_config"],
+    "adminPrivileges": ["reset_passwords", "modify_permissions", "view_all_data"]
+  },
+  "organizationalContext": {
+    "company": "TechCorp Solutions Inc",
+    "division": "Information Technology",
+    "location": "San Francisco, CA",
+    "reportsTo": "ciso@techcorp.com",
+    "teamSize": 8
+  },
+  "complianceFlags": {
+    "backgroundCheckCompleted": true,
+    "securityClearanceDate": "2023-06-15",
+    "lastTrainingDate": "2023-12-10",
+    "certifications": ["CISSP", "Security+"]
+  }
+}

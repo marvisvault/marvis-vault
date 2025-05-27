@@ -1,0 +1,134 @@
+{
+  "accounts": [
+    {
+      "accountId": "ACC-001-PREMIER",
+      "accountHolder": {
+        "name": "Alexandra Thompson",
+        "ssn": "234-56-7890",
+        "taxId": "TAX-2024-001"
+      },
+      "accountDetails": {
+        "accountNumber": "4532-1234-5678-9012",
+        "routingNumber": "121000248",
+        "accountType": "Premier Checking",
+        "balance": 125000.50,
+        "currency": "USD"
+      },
+      "transactions": [
+        {
+          "transactionId": "TXN-2024-001",
+          "date": "2024-01-24T10:15:00Z",
+          "type": "WIRE_TRANSFER",
+          "amount": -50000.00,
+          "description": "Wire to Schwab Investment",
+          "recipient": {
+            "name": "Charles Schwab & Co",
+            "accountNumber": "****4567"
+          },
+          "status": "COMPLETED"
+        },
+        {
+          "transactionId": "TXN-2024-002",
+          "date": "2024-01-23T14:30:00Z",
+          "type": "ACH_CREDIT",
+          "amount": 15000.00,
+          "description": "Salary Deposit - TechCorp",
+          "sender": {
+            "name": "TechCorp Payroll",
+            "reference": "PAY-JAN-2024"
+          },
+          "status": "COMPLETED"
+        },
+        {
+          "transactionId": "TXN-2024-003",
+          "date": "2024-01-22T09:45:00Z",
+          "type": "DEBIT_CARD",
+          "amount": -2500.00,
+          "description": "Apple Store - MacBook Pro",
+          "merchant": {
+            "name": "Apple Store Union Square",
+            "category": "Electronics",
+            "mcc": "5732"
+          },
+          "status": "COMPLETED"
+        }
+      ],
+      "creditCards": [
+        {
+          "cardNumber": "4532-****-****-9012",
+          "cvv": "123",
+          "expiryDate": "12/26",
+          "creditLimit": 50000,
+          "availableCredit": 42500,
+          "apr": 18.99
+        }
+      ]
+    },
+    {
+      "accountId": "ACC-002-BUSINESS",
+      "accountHolder": {
+        "name": "TechStartup Inc",
+        "ein": "52-1234567",
+        "taxId": "TAX-2024-CORP-001"
+      },
+      "accountDetails": {
+        "accountNumber": "9876-5432-1098-7654",
+        "routingNumber": "026009593",
+        "accountType": "Business Checking",
+        "balance": 2500000.00,
+        "currency": "USD"
+      },
+      "transactions": [
+        {
+          "transactionId": "TXN-2024-101",
+          "date": "2024-01-24T16:00:00Z",
+          "type": "PAYROLL",
+          "amount": -450000.00,
+          "description": "Monthly Payroll - 50 Employees",
+          "batchId": "PAYROLL-JAN-2024",
+          "status": "PROCESSING"
+        },
+        {
+          "transactionId": "TXN-2024-102",
+          "date": "2024-01-23T11:00:00Z",
+          "type": "WIRE_TRANSFER",
+          "amount": 1000000.00,
+          "description": "Series B Funding - Venture Capital",
+          "sender": {
+            "name": "Innovation Ventures LLC",
+            "reference": "INVESTMENT-B-001"
+          },
+          "status": "COMPLETED"
+        }
+      ],
+      "creditCards": [
+        {
+          "cardNumber": "5432-****-****-1234",
+          "cvv": "456",
+          "expiryDate": "06/25",
+          "creditLimit": 250000,
+          "availableCredit": 198500,
+          "apr": 14.99
+        }
+      ],
+      "loans": [
+        {
+          "loanId": "LOAN-2023-001",
+          "type": "Business Line of Credit",
+          "principal": 500000.00,
+          "outstandingBalance": 125000.00,
+          "interestRate": 7.5,
+          "monthlyPayment": 5500.00,
+          "nextPaymentDate": "2024-02-01"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "exportDate": "2024-01-25T17:00:00Z",
+    "recordCount": 2,
+    "totalAssetsUnderManagement": 2625000.50,
+    "dataClassification": "PCI - Financial Data",
+    "complianceStandards": ["PCI-DSS", "SOX", "GLBA"]
+  }
+}

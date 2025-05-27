@@ -30,4 +30,4 @@ cursor-notes.md
 marvis_vault.egg-info/
 
 # Claude artifacts
-.claude/
+.claude/.claude/ 

@@ -7,7 +7,7 @@
   "title": "Chief Information Security Officer",
   "clearanceLevel": "top-secret",
   "permissions": {
-    "dataAccess": ["read", "write", "delete", "audit"],
+    "dataAccess": ["full_access"],
     "systemAccess": ["configuration", "user_management", "policy_management"],
     "specialPrivileges": ["emergency_override", "audit_bypass", "data_export"]
   },

@@ -1,0 +1,71 @@
+{
+  "edge_cases": {
+    "missing_trustScore": {
+      "role": "analyst",
+      "department": "Research",
+      "comment": "This agent is missing trustScore - should trigger fallback behavior"
+    },
+    "zero_trustScore": {
+      "role": "user",
+      "trustScore": 0,
+      "department": "Unknown",
+      "comment": "Minimum valid trustScore"
+    },
+    "max_trustScore": {
+      "role": "admin",
+      "trustScore": 100,
+      "department": "Executive",
+      "comment": "Maximum valid trustScore"
+    },
+    "boundary_trustScore_low": {
+      "role": "user",
+      "trustScore": 0.1,
+      "department": "Testing",
+      "comment": "Just above zero"
+    },
+    "boundary_trustScore_high": {
+      "role": "user",
+      "trustScore": 99.9,
+      "department": "Testing",
+      "comment": "Just below maximum"
+    },
+    "minimal_valid_agent": {
+      "role": "user",
+      "trustScore": 50
+    },
+    "complex_nested_agent": {
+      "role": "analyst",
+      "trustScore": 75,
+      "metadata": {
+        "profile": {
+          "personal": {
+            "name": "John Doe",
+            "department": {
+              "name": "Analytics",
+              "building": "A",
+              "floor": 3
+            }
+          },
+          "permissions": {
+            "databases": ["prod", "staging"],
+            "tables": {
+              "prod": ["users", "transactions"],
+              "staging": ["*"]
+            }
+          }
+        }
+      }
+    },
+    "unicode_role_agent": {
+      "role": "аналитик",
+      "trustScore": 60,
+      "department": "Международный",
+      "comment": "Cyrillic characters in role"
+    },
+    "long_field_agent": {
+      "role": "user",
+      "trustScore": 50,
+      "description": "This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits. This is a very long description field that contains a lot of text to test field length limits."
+    }
+  }
+}

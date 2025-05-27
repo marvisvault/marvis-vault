@@ -1,8 +1,25 @@
 {
-    "role": "admin",
-    "trustScore": 85,
-    "context": {
-        "department": "IT",
-        "location": "US"
-    }
-} 
+  "role": "analyst",
+  "trustScore": 78,
+  "userId": "USR-2024-3421",
+  "username": "data.analyst",
+  "department": "Business Intelligence",
+  "title": "Senior Data Analyst",
+  "clearanceLevel": "confidential",
+  "authentication": {
+    "mfaEnabled": true,
+    "lastLogin": "2024-01-25T11:20:00Z",
+    "sessionId": "sess_2024012511203421",
+    "authMethod": "sso_okta"
+  },
+  "permissions": {
+    "dataAccess": ["read", "analyze", "export_limited"],
+    "databases": ["warehouse", "analytics", "reporting"],
+    "exportLimit": "100000_records"
+  },
+  "context": {
+    "currentProject": "Q1 Revenue Analysis",
+    "accessReason": "quarterly_reporting",
+    "dataScope": "north_america_sales"
+  }
+}

@@ -1,4 +1,63 @@
 {
   "role": "contractor",
-  "trustScore": 40
+  "trustScore": 40,
+  "userId": "CTR-2024-0089",
+  "username": "ext.maria.garcia",
+  "department": "External Development",
+  "title": "Contract UI Developer",
+  "clearanceLevel": "public",
+  "contractDetails": {
+    "company": "DevShop Consulting LLC",
+    "contractId": "CONTRACT-2024-Q1-089",
+    "startDate": "2024-01-02",
+    "endDate": "2024-03-31",
+    "hourlyRate": 125,
+    "maxHours": 480
+  },
+  "permissions": {
+    "dataAccess": ["read"],
+    "systemAccess": ["limited_application_access"],
+    "restrictions": [
+      "no_production_data",
+      "no_customer_pii",
+      "no_financial_data",
+      "no_source_code_export"
+    ],
+    "resourceLimits": {
+      "maxRecordsPerQuery": 100,
+      "apiRateLimit": "20/hour",
+      "exportSizeLimit": "1MB",
+      "accessHours": "09:00-18:00 PST"
+    }
+  },
+  "authentication": {
+    "mfaEnabled": true,
+    "lastLogin": "2024-01-25T10:45:00Z",
+    "loginLocation": "73.92.124.103",
+    "sessionId": "sess_2024012510450089",
+    "authMethod": "temporary_credentials",
+    "sessionTimeout": "4_hours"
+  },
+  "projectAccess": [
+    {
+      "projectId": "PROJ-2024-003",
+      "projectName": "Marketing Website Redesign",
+      "accessLevel": "contributor",
+      "dataScope": "ui_mockups_only",
+      "accessExpiry": "2024-03-31"
+    }
+  ],
+  "compliance": {
+    "ndaSigned": true,
+    "ndaDate": "2024-01-02",
+    "backgroundCheckStatus": "basic_completed",
+    "trainingCompleted": ["security_basics", "data_handling"]
+  },
+  "metadata": {
+    "accountCreated": "2024-01-02T00:00:00Z",
+    "accountType": "temporary",
+    "sponsor": "michael.johnson",
+    "lastReview": "2024-01-15",
+    "riskScore": "medium"
+  }
 }
