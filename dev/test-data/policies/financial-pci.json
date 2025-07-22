@@ -1,0 +1,121 @@
+{
+  "name": "PCI-DSS Financial Data Policy",
+  "version": "3.0",
+  "description": "PCI-DSS compliant policy for financial and payment card data",
+  "template_id": "financial-pci-v3",
+  "data_classification": "PCI",
+  "fields": [
+    {
+      "field": "accountNumber",
+      "conditions": [
+        "role == 'admin' && mfa == true",
+        "role == 'account_owner' && authenticated == true",
+        "role == 'customer_service' && call_recording == true && trustScore > 90",
+        "role == 'fraud_analyst' && case_assigned == true"
+      ],
+      "unmask_role_override": "security_admin",
+      "partial_unmask": {
+        "default_visible": 4,
+        "position": "last"
+      }
+    },
+    {
+      "field": "creditCards[*].cardNumber",
+      "conditions": [
+        "role == 'admin' && pci_certified == true",
+        "role == 'payment_processor' && transaction_in_progress == true",
+        "never"
+      ],
+      "partial_unmask": {
+        "default_visible": 4,
+        "position": "last"
+      }
+    },
+    {
+      "field": "creditCards[*].cvv",
+      "conditions": [
+        "never"
+      ],
+      "unmask_role_override": "none",
+      "redaction_note": "CVV must never be stored or displayed per PCI-DSS"
+    },
+    {
+      "field": "routingNumber",
+      "conditions": [
+        "role == 'admin'",
+        "role == 'account_owner'",
+        "role == 'payment_operations' && trustScore > 85"
+      ]
+    },
+    {
+      "field": "ssn",
+      "conditions": [
+        "role == 'admin' && purpose == 'identity_verification'",
+        "role == 'compliance' && investigation == true",
+        "role == 'tax_reporting' && tax_season == true && trustScore > 95"
+      ],
+      "partial_unmask": {
+        "default_visible": 4,
+        "position": "last"
+      }
+    },
+    {
+      "field": "balance",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'financial_advisor' && client_consent == true",
+        "role == 'admin'",
+        "role == 'auditor' && audit_in_progress == true"
+      ]
+    },
+    {
+      "field": "transactions[*].amount",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'admin'",
+        "role == 'fraud_analyst' && case_assigned == true",
+        "role == 'auditor' && audit_scope.includes('transactions')"
+      ]
+    },
+    {
+      "field": "loans[*].outstandingBalance",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'loan_officer'",
+        "role == 'collections' && account_status == 'delinquent'"
+      ]
+    },
+    {
+      "field": "taxId",
+      "conditions": [
+        "role == 'tax_admin' && trustScore > 90",
+        "role == 'compliance' && purpose == 'regulatory_reporting'"
+      ]
+    }
+  ],
+  "transaction_rules": {
+    "high_value_threshold": 10000,
+    "require_additional_auth": [
+      "amount > 10000",
+      "international == true",
+      "merchant_category == 'high_risk'"
+    ]
+  },
+  "audit_settings": {
+    "log_all_access": true,
+    "log_unmask_events": true,
+    "log_failed_attempts": true,
+    "retention_days": 2555,
+    "real_time_monitoring": true,
+    "alert_thresholds": {
+      "failed_attempts": 3,
+      "unusual_access_pattern": true
+    }
+  },
+  "compliance_metadata": {
+    "standards": ["PCI-DSS v4.0", "SOX", "GLBA", "CCPA"],
+    "last_audit": "2023-12-15",
+    "next_audit": "2024-06-15",
+    "certification_expiry": "2024-12-31"
+  }
+}

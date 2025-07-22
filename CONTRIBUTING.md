@@ -4,10 +4,10 @@ Thanks for your interest in contributing!
 
 This project is open-source and early-stage — we welcome improvements across:
 
-- 🧠 Policy logic, templates, or real-world examples
-- 🛠️ CLI enhancements, SDK improvements
-- 🧪 Tests and error handling
-- 📚 Documentation and guides
+- Policy logic, templates, or real-world examples
+- Tools: CLI enhancements, SDK improvements
+- Tests and error handling
+- Documentation and guides
 
 ## Getting Started
 
@@ -18,9 +18,9 @@ This project is open-source and early-stage — we welcome improvements across:
 
 To help you get started, we've prepared comprehensive documentation:
 
-- 📚 [Tutorial & Code Understanding](docs/01_index.md) - Deep dive into how Marvis Vault works
-- 🚀 [Quick Start Guide](docs/00_quickstart.md) - Run your first example in minutes
-- 📋 [GitHub Issues](https://github.com/yourusername/marvis-vault-oss/issues) - Find tasks to work on
+- [Tutorial & Code Understanding](docs/01_index.md) - Deep dive into how Marvis Vault works
+- Quick Start: [Quick Start Guide](docs/00_quickstart.md) - Run your first example in minutes
+- Tasks: [GitHub Issues](https://github.com/yourusername/marvis-vault-oss/issues) - Find tasks to work on
 
 ## Guidelines
 

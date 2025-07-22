@@ -1,8 +1,194 @@
 {
-  "mask": ["email", "phone"],
-  "unmask_roles": ["admin", "data_protection_officer"],
-  "conditions": [
-    "trustScore > 80 && role != 'auditor'",
-    "trustScore > 70 && role == 'data_protection_officer'"
-  ]
-} 
+  "name": "GDPR-Compliant Data Protection",
+  "version": "2.0",
+  "description": "Data protection policy aligned with GDPR principles for EU data subjects",
+  "template_id": "gdpr-lite-v2",
+  "compliance_standards": ["GDPR", "ePrivacy"],
+  "fields": [
+    {
+      "field": "personalInformation.fullName",
+      "conditions": [
+        "legitimate_interest == true && trustScore > 70",
+        "consent_given == true",
+        "role == 'data_controller' && purpose_defined == true",
+        "role == 'admin' && trustScore > 85"
+      ],
+      "lawful_basis_required": true
+    },
+    {
+      "field": "contactInformation.primaryEmail",
+      "conditions": [
+        "consent_given == true || legitimate_interest == true",
+        "role == 'marketing' && opt_in == true && trustScore > 75",
+        "role == 'customer_service' && active_case == true",
+        "role == 'data_protection_officer'"
+      ],
+      "purpose_limitation": ["service_delivery", "support", "legal_compliance"]
+    },
+    {
+      "field": "contactInformation.phoneNumbers",
+      "conditions": [
+        "consent_given == true",
+        "role == 'customer_service' && trustScore > 70",
+        "vital_interests == true && emergency == true",
+        "role == 'data_protection_officer'"
+      ]
+    },
+    {
+      "field": "contactInformation.currentAddress",
+      "conditions": [
+        "contract_fulfillment == true",
+        "role == 'shipping' && order_active == true",
+        "role == 'compliance' && legal_requirement == true",
+        "role == 'admin' && trustScore > 80"
+      ],
+      "data_minimization": true
+    },
+    {
+      "field": "digitalIdentity.ipAddress",
+      "conditions": [
+        "security_purpose == true && trustScore > 85",
+        "role == 'security_team' && incident_response == true",
+        "role == 'data_protection_officer'"
+      ],
+      "retention_limit": "6_months",
+      "pseudonymization_required": true
+    },
+    {
+      "field": "digitalIdentity.deviceInformation",
+      "conditions": [
+        "consent_given == true",
+        "security_monitoring == true && trustScore > 80",
+        "role == 'it_support' && troubleshooting == true"
+      ]
+    },
+    {
+      "field": "consentAndCompliance.marketingPreferences",
+      "conditions": [
+        "role == 'marketing' && campaign_management == true",
+        "role == 'data_subject' && self_service == true",
+        "role == 'privacy_team'",
+        "role == 'admin' && trustScore > 85"
+      ],
+      "always_accessible_to_data_subject": true
+    },
+    {
+      "field": "employmentInformation",
+      "conditions": [
+        "hr_processing == true && employment_relationship == true",
+        "role == 'hr_admin' && trustScore > 80",
+        "role == 'manager' && direct_report == true",
+        "legal_obligation == true"
+      ],
+      "special_category_data": true,
+      "explicit_consent_required": true
+    },
+    {
+      "field": "healthInformation",
+      "conditions": [
+        "explicit_consent == true && health_service_provision == true",
+        "vital_interests == true && data_subject_incapable == true",
+        "role == 'healthcare_professional' && treatment_relationship == true"
+      ],
+      "special_category_data": true,
+      "enhanced_security_required": true
+    },
+    {
+      "field": "financialProfile",
+      "conditions": [
+        "contract_performance == true",
+        "role == 'finance_team' && payment_processing == true && trustScore > 85",
+        "anti_fraud_check == true && legitimate_interest == true",
+        "role == 'data_protection_officer' && audit == true"
+      ]
+    }
+  ],
+  "data_subject_rights": {
+    "right_of_access": {
+      "response_time": "30_days",
+      "format": "structured_commonly_used_machine_readable",
+      "free_of_charge": true,
+      "verification_required": true
+    },
+    "right_to_rectification": {
+      "immediate_action": true,
+      "notify_third_parties": true
+    },
+    "right_to_erasure": {
+      "conditions": [
+        "no_longer_necessary",
+        "consent_withdrawn",
+        "unlawful_processing",
+        "legal_obligation"
+      ],
+      "exceptions": [
+        "legal_obligation",
+        "public_interest",
+        "legal_claims"
+      ]
+    },
+    "right_to_portability": {
+      "format": "JSON",
+      "direct_transfer_available": true,
+      "applies_to": ["consent_based_processing", "contract_based_processing"]
+    },
+    "right_to_object": {
+      "must_stop_processing": true,
+      "exceptions": ["compelling_legitimate_grounds", "legal_claims"]
+    },
+    "automated_decision_making": {
+      "human_review_required": true,
+      "explanation_required": true,
+      "opt_out_available": true
+    }
+  },
+  "privacy_by_design": {
+    "data_minimization": {
+      "collect_only_necessary": true,
+      "regular_review": "quarterly"
+    },
+    "purpose_limitation": {
+      "defined_purposes_only": true,
+      "new_purpose_requires_assessment": true
+    },
+    "storage_limitation": {
+      "retention_periods_defined": true,
+      "automatic_deletion": true,
+      "regular_review": "annually"
+    },
+    "security_measures": {
+      "encryption_at_rest": true,
+      "encryption_in_transit": true,
+      "pseudonymization": true,
+      "access_controls": "role_based"
+    }
+  },
+  "cross_border_transfers": {
+    "adequacy_decision_required": true,
+    "appropriate_safeguards": [
+      "standard_contractual_clauses",
+      "binding_corporate_rules",
+      "approved_code_of_conduct"
+    ],
+    "transfer_mechanism_documentation": true
+  },
+  "breach_notification": {
+    "supervisory_authority": {
+      "timeline": "72_hours",
+      "required_unless": "unlikely_risk_to_rights"
+    },
+    "data_subjects": {
+      "timeline": "without_undue_delay",
+      "required_if": "high_risk_to_rights",
+      "clear_plain_language": true
+    }
+  },
+  "audit_configuration": {
+    "log_all_processing": true,
+    "purpose_tracking": true,
+    "consent_tracking": true,
+    "third_party_sharing": true,
+    "retention_period": "as_long_as_data_retained",
+    "privacy_impact_assessments": "required_for_high_risk"
+  }
+}

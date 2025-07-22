@@ -1,0 +1,99 @@
+{
+  "agents": {
+    "admin_full_access": {
+      "role": "admin",
+      "trustScore": 95,
+      "department": "IT Security",
+      "clearanceLevel": "top-secret",
+      "permissions": ["read", "write", "delete", "audit"],
+      "metadata": {
+        "userId": "admin-001",
+        "lastLogin": "2024-01-15T10:30:00Z",
+        "ipAddress": "10.0.1.100"
+      }
+    },
+    "analyst_high_trust": {
+      "role": "analyst",
+      "trustScore": 85,
+      "department": "Data Analytics",
+      "clearanceLevel": "secret",
+      "permissions": ["read", "analyze"],
+      "metadata": {
+        "userId": "analyst-042",
+        "teamLead": "Sarah Johnson",
+        "projectCode": "PROJ-2024-Q1"
+      }
+    },
+    "analyst_medium_trust": {
+      "role": "analyst",
+      "trustScore": 65,
+      "department": "Marketing Analytics",
+      "clearanceLevel": "confidential",
+      "permissions": ["read"],
+      "metadata": {
+        "userId": "analyst-156",
+        "accessExpiry": "2024-12-31T23:59:59Z"
+      }
+    },
+    "user_low_trust": {
+      "role": "user",
+      "trustScore": 40,
+      "department": "Sales",
+      "clearanceLevel": "public",
+      "permissions": ["read"],
+      "metadata": {
+        "userId": "user-8934",
+        "accountType": "basic",
+        "region": "US-WEST"
+      }
+    },
+    "contractor_minimal_trust": {
+      "role": "contractor",
+      "trustScore": 25,
+      "department": "External",
+      "clearanceLevel": "restricted",
+      "permissions": ["read"],
+      "metadata": {
+        "userId": "contractor-temp-001",
+        "company": "TechConsult Inc",
+        "contractEnd": "2024-06-30T00:00:00Z"
+      }
+    },
+    "support_agent": {
+      "role": "support",
+      "trustScore": 70,
+      "department": "Customer Support",
+      "clearanceLevel": "confidential",
+      "permissions": ["read", "update"],
+      "metadata": {
+        "userId": "support-223",
+        "ticketQuota": 50,
+        "shiftTime": "09:00-17:00 PST"
+      }
+    },
+    "auditor_readonly": {
+      "role": "auditor",
+      "trustScore": 90,
+      "department": "Compliance",
+      "clearanceLevel": "secret",
+      "permissions": ["read", "audit"],
+      "metadata": {
+        "userId": "auditor-007",
+        "certifications": ["ISO27001", "SOC2"],
+        "auditScope": "full"
+      }
+    },
+    "system_automated": {
+      "role": "system",
+      "trustScore": 100,
+      "department": "Automated Systems",
+      "clearanceLevel": "system",
+      "permissions": ["read", "write", "execute"],
+      "metadata": {
+        "processId": "system-automation-01",
+        "version": "2.3.1",
+        "lastUpdate": "2024-01-10T00:00:00Z"
+      }
+    }
+  }
+}

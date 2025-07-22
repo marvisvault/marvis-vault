@@ -1,0 +1,52 @@
+{
+  "role": "user",
+  "trustScore": 75,
+  "userId": "USR-2024-1847",
+  "username": "john.developer",
+  "department": "Engineering",
+  "title": "Senior Software Engineer",
+  "clearanceLevel": "confidential",
+  "permissions": {
+    "dataAccess": ["read", "write"],
+    "systemAccess": ["application_access"],
+    "resourceLimits": {
+      "maxRecordsPerQuery": 1000,
+      "apiRateLimit": "100/hour",
+      "exportSizeLimit": "10MB"
+    }
+  },
+  "authentication": {
+    "mfaEnabled": true,
+    "lastLogin": "2024-01-25T14:30:00Z",
+    "loginLocation": "192.168.1.45",
+    "sessionId": "sess_2024012514301847",
+    "authMethod": "password_plus_app"
+  },
+  "organizationalContext": {
+    "company": "TechCorp Solutions Inc",
+    "division": "Product Development",
+    "costCenter": "ENG-042",
+    "manager": "lisa.chen",
+    "team": "Platform Services"
+  },
+  "projectAccess": [
+    {
+      "projectId": "PROJ-2024-001",
+      "projectName": "Customer Portal v2",
+      "accessLevel": "contributor",
+      "dataScope": "project_specific"
+    },
+    {
+      "projectId": "PROJ-2023-089",
+      "projectName": "API Gateway",
+      "accessLevel": "viewer",
+      "dataScope": "read_only"
+    }
+  ],
+  "metadata": {
+    "accountCreated": "2021-06-15T00:00:00Z",
+    "employmentType": "full-time",
+    "location": "San Francisco, CA",
+    "remoteAccess": true
+  }
+}

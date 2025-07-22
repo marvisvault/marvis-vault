@@ -1,8 +1,175 @@
 {
-  "mask": ["name", "dob", "ssn"],
-  "unmask_roles": ["admin", "hr_manager"],
-  "conditions": [
-    "trustScore >= 85 && role == 'auditor'",
-    "trustScore > 75 && role == 'hr_admin'"
-  ]
-} 
+  "name": "Basic PII Protection",
+  "version": "1.5",
+  "description": "Standard personally identifiable information protection for general use cases",
+  "template_id": "pii-basic-v1.5",
+  "compliance_standards": ["NIST-800-122", "ISO-27701"],
+  "fields": [
+    {
+      "field": "personalInformation.fullName",
+      "conditions": [
+        "role == 'admin' && trustScore > 85",
+        "role == 'hr_manager' && employee_record == true",
+        "role == 'customer_service' && active_interaction == true && trustScore > 75",
+        "role == 'account_owner'"
+      ]
+    },
+    {
+      "field": "personalInformation.firstName",
+      "conditions": [
+        "role != 'public'",
+        "trustScore > 50"
+      ]
+    },
+    {
+      "field": "personalInformation.lastName",
+      "conditions": [
+        "role != 'public'",
+        "trustScore > 50"
+      ]
+    },
+    {
+      "field": "personalInformation.dateOfBirth",
+      "conditions": [
+        "role == 'admin' && trustScore > 85",
+        "role == 'hr_admin' && purpose IN ['benefits', 'compliance']",
+        "role == 'healthcare_provider' && patient_care == true",
+        "role == 'auditor' && audit_scope_includes_pii == true && trustScore >= 85"
+      ]
+    },
+    {
+      "field": "personalInformation.ssn",
+      "conditions": [
+        "role == 'admin' && trustScore > 90 && mfa_verified == true",
+        "role == 'hr_manager' && purpose == 'tax_reporting'",
+        "role == 'payroll_admin' && processing_period == true && trustScore > 85",
+        "role == 'compliance_officer' && regulatory_requirement == true"
+      ],
+      "partial_unmask": {
+        "default_visible": 4,
+        "position": "last"
+      },
+      "audit_required": true
+    },
+    {
+      "field": "contactInformation.primaryEmail",
+      "conditions": [
+        "role != 'public'",
+        "role == 'marketing' && opt_in == true && trustScore > 60",
+        "role == 'support' && ticket_open == true",
+        "trustScore > 40"
+      ]
+    },
+    {
+      "field": "contactInformation.phoneNumbers",
+      "conditions": [
+        "role == 'admin' && trustScore > 80",
+        "role == 'customer_service' && call_in_progress == true",
+        "role == 'emergency_contact' && emergency == true",
+        "role == 'account_owner'"
+      ]
+    },
+    {
+      "field": "contactInformation.currentAddress",
+      "conditions": [
+        "role == 'admin' && trustScore > 85",
+        "role == 'shipping' && order_active == true",
+        "role == 'billing' && invoice_generation == true",
+        "role == 'emergency_services' && emergency == true"
+      ]
+    },
+    {
+      "field": "personalInformation.driversLicense",
+      "conditions": [
+        "role == 'admin' && purpose == 'identity_verification' && trustScore > 90",
+        "role == 'compliance' && kyc_process == true",
+        "role == 'car_rental' && rental_active == true"
+      ]
+    },
+    {
+      "field": "personalInformation.passport",
+      "conditions": [
+        "role == 'admin' && purpose == 'identity_verification' && trustScore > 90",
+        "role == 'travel_agent' && booking_active == true",
+        "role == 'immigration_officer' && official_process == true"
+      ]
+    },
+    {
+      "field": "employmentInformation.employeeId",
+      "conditions": [
+        "role == 'employee' && self_access == true",
+        "role == 'manager' && direct_report == true",
+        "role == 'hr_admin'",
+        "role == 'payroll' && trustScore > 75"
+      ]
+    },
+    {
+      "field": "financialProfile.bankAccounts",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'finance_admin' && trustScore > 90",
+        "role == 'payroll' && payment_processing == true"
+      ]
+    },
+    {
+      "field": "digitalIdentity.ipAddress",
+      "conditions": [
+        "role == 'security_admin' && investigation_active == true",
+        "role == 'network_admin' && troubleshooting == true && trustScore > 80",
+        "role == 'privacy_officer' && audit_mode == true"
+      ]
+    }
+  ],
+  "sensitivity_levels": {
+    "public": {
+      "description": "Information that can be freely shared",
+      "examples": ["company_name", "job_title"],
+      "default_visible": true
+    },
+    "internal": {
+      "description": "Information for internal use only",
+      "examples": ["employee_id", "department"],
+      "min_trust_score": 50
+    },
+    "confidential": {
+      "description": "Sensitive personal information",
+      "examples": ["full_name", "email", "phone"],
+      "min_trust_score": 70
+    },
+    "restricted": {
+      "description": "Highly sensitive information requiring special authorization",
+      "examples": ["ssn", "bank_account", "medical_records"],
+      "min_trust_score": 85,
+      "additional_requirements": ["mfa", "audit_trail", "purpose_declaration"]
+    }
+  },
+  "purpose_categories": {
+    "identity_verification": {
+      "allowed_fields": ["name", "dob", "ssn", "drivers_license"],
+      "retention_limit": "verification_complete + 30_days"
+    },
+    "employment": {
+      "allowed_fields": ["name", "ssn", "address", "emergency_contact"],
+      "retention_limit": "employment_duration + 7_years"
+    },
+    "customer_service": {
+      "allowed_fields": ["name", "email", "phone", "account_number"],
+      "retention_limit": "issue_resolved + 90_days"
+    },
+    "marketing": {
+      "allowed_fields": ["email", "preferences"],
+      "requires_consent": true,
+      "retention_limit": "consent_withdrawn + 30_days"
+    }
+  },
+  "audit_configuration": {
+    "log_access_to": ["ssn", "dateOfBirth", "financialProfile", "driversLicense", "passport"],
+    "alert_on": {
+      "bulk_access": "accessing > 100 records in 1_hour",
+      "sensitive_access": "accessing restricted fields",
+      "unusual_patterns": "access outside normal hours or location"
+    },
+    "retention": "3_years",
+    "tamper_proof": true
+  }
+}

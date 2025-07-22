@@ -177,6 +177,16 @@ def redact(
         dir_okay=False,
         writable=True,
     ),
+    agent: Optional[Path] = typer.Option(
+        None,
+        "--agent",
+        "-g",
+        help="Agent context file path (JSON). Contains role, trustScore, etc.",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+    ),
     audit: Optional[Path] = typer.Option(
         None,
         "--audit",
@@ -226,8 +236,65 @@ def redact(
             console.print("[red]Error: Invalid policy structure[/red]")
             sys.exit(1)
         
-        # Read input
+        # Read agent context if provided
+        agent_context = None
+        if agent:
+            try:
+                # Import security validators
+                from ..utils.security_validators import (
+                    validate_agent_context, 
+                    validate_content_size,
+                    validate_json_depth,
+                    SecurityValidationError,
+                    sanitize_error_message
+                )
+                
+                # Read and validate size
+                agent_content = agent.read_text()
+                validate_content_size(agent_content)
+                
+                if not agent_content.strip():
+                    console.print("[red]Error: Agent file is empty[/red]")
+                    sys.exit(1)
+                
+                # Parse JSON
+                try:
+                    agent_context = json.loads(agent_content)
+                except json.JSONDecodeError as e:
+                    console.print(f"[red]Error: Invalid JSON in agent file: {sanitize_error_message(e)}[/red]")
+                    sys.exit(1)
+                
+                # Validate JSON depth
+                try:
+                    validate_json_depth(agent_context)
+                except SecurityValidationError as e:
+                    console.print(f"[red]Error: {str(e)}[/red]")
+                    sys.exit(1)
+                
+                # Comprehensive security validation (trustScore optional for redact)
+                try:
+                    agent_context = validate_agent_context(agent_context, source="agent-redact")
+                except SecurityValidationError as e:
+                    console.print(f"[red]Error: {str(e)}[/red]")
+                    sys.exit(1)
+                    
+            except Exception as e:
+                # Sanitize error message
+                safe_error = sanitize_error_message(e) if 'sanitize_error_message' in locals() else str(e)
+                console.print(f"[red]Error loading agent file: {safe_error}[/red]")
+                sys.exit(1)
+        
+        # Read input with size validation
         input_content = read_input(input)
+        
+        # Validate input size
+        try:
+            from ..utils.security_validators import validate_content_size
+            validate_content_size(input_content)
+        except Exception as e:
+            console.print(f"[red]Error: Input too large (max 10MB)[/red]")
+            sys.exit(1)
+        
         log_file = None
 
         # Prepare RedactionResult and optionally attach streaming logger
@@ -235,9 +302,9 @@ def redact(
         if stream_log:
             log_file = attach_stream_logger(result, stream_log)
 
-        # Apply redaction using pre-constructed result
+        # Apply redaction using pre-constructed result with agent context
         try:
-            sdk_redact(input_content, policy_content, result=result)
+            sdk_redact(input_content, policy_content, context=agent_context, result=result)
         except Exception as e:
             console.print(f"[red]Error during redaction: {str(e)}[/red]")
             sys.exit(1)

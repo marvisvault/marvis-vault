@@ -117,10 +117,22 @@ def detect_format(content: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
 def create_field_patterns(fields: List[str], aliases: Optional[Dict[str, List[str]]] = None) -> Dict[str, re.Pattern]:
     """Create case-insensitive regex patterns for each field with proper escaping."""
     patterns = {}
+    
+    # Limit number of patterns to prevent DoS
+    if len(fields) > 100:
+        raise RedactionError("policy", "Too many fields to mask (max 100)")
+    
     for field in fields:
-        # Handle wildcard patterns
+        # Limit field length
+        if len(field) > 100:
+            raise RedactionError("field", f"Field name too long: {field[:50]}...")
+        
+        # Handle wildcard patterns safely
         if "*" in field:
-            base = field.replace("*", ".*")
+            # Escape everything except the wildcard
+            parts = field.split("*")
+            escaped_parts = [re.escape(part) for part in parts]
+            base = ".*?".join(escaped_parts)  # Non-greedy matching
             pattern = rf"{base}\s*[:=]\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
         else:
             # Normalize field name to NFC form
@@ -128,7 +140,10 @@ def create_field_patterns(fields: List[str], aliases: Optional[Dict[str, List[st
             escaped_field = re.escape(normalized_field)
             pattern = rf"{escaped_field}\s*[:=]\s*([^\n,}}]+(?:\n[^\n,}}]+)*)"
         
-        patterns[field] = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        try:
+            patterns[field] = re.compile(pattern, re.IGNORECASE | re.DOTALL)
+        except re.error as e:
+            raise RedactionError("field", f"Invalid pattern for field '{field}': {str(e)}")
         
         # Add patterns for aliases if they exist
         if aliases and field in aliases:
@@ -252,11 +267,37 @@ def redact(content: str, policy: Dict[str, Any], context: Optional[Dict[str, Any
         result.line_mapping.clear()
         result.timestamp = datetime.now(timezone.utc).isoformat()
 
-    # Evaluate global conditions if context is provided
+    # Check if user's role has unmask permission
     if context is not None:
-        eval_result = evaluate(policy, context)
-        if not eval_result.get("status", False):
-            return result  # Policy condition not met — no redaction
+        user_role = context.get("role")
+        unmask_roles = policy.get("unmaskRoles", policy.get("unmask_roles", []))
+        if user_role and user_role in unmask_roles:
+            # User's role has permission - return unredacted content
+            return result
+    
+    # Evaluate global conditions if context is provided
+    if context is not None and "conditions" in policy and policy["conditions"]:
+        # For global conditions, we need to evaluate them properly
+        # If ANY condition passes, the user has access (no redaction needed)
+        try:
+            from vault.engine.condition_evaluator import evaluate_condition
+            any_condition_passed = False
+            for condition in policy["conditions"]:
+                try:
+                    result_cond, _, _ = evaluate_condition(condition, context)
+                    if result_cond:
+                        any_condition_passed = True
+                        break
+                except Exception:
+                    # Missing context values or errors = condition fails
+                    continue
+            
+            if any_condition_passed:
+                # User has permission - return unredacted content
+                return result
+        except Exception:
+            # Any error in evaluation = proceed with redaction (fail safe)
+            pass
 
     # Detect format and apply appropriate redaction
     is_json, parsed_json = detect_format(content)

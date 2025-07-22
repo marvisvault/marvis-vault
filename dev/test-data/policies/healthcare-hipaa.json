@@ -1,0 +1,93 @@
+{
+  "name": "HIPAA Compliance Policy",
+  "version": "2.0",
+  "description": "Comprehensive HIPAA-compliant data protection policy for healthcare records",
+  "template_id": "healthcare-hipaa-v2",
+  "data_classification": "PHI",
+  "fields": [
+    {
+      "field": "ssn",
+      "conditions": [
+        "role == 'admin'",
+        "role == 'healthcare_provider' && trustScore > 85",
+        "role == 'billing' && department == 'Finance' && trustScore > 75"
+      ],
+      "unmask_role_override": "compliance_officer"
+    },
+    {
+      "field": "dateOfBirth",
+      "conditions": [
+        "role == 'admin'",
+        "role == 'healthcare_provider'",
+        "role == 'nurse' && trustScore > 70",
+        "purpose == 'age_verification'"
+      ]
+    },
+    {
+      "field": "medicalRecordNumber",
+      "conditions": [
+        "role == 'admin'",
+        "role == 'healthcare_provider'",
+        "role == 'nurse' && shift == 'active'",
+        "role == 'medical_records' && trustScore > 80"
+      ]
+    },
+    {
+      "field": "diagnosis",
+      "conditions": [
+        "role == 'healthcare_provider'",
+        "role == 'specialist' && referral == true",
+        "role == 'insurance' && claim_status == 'processing' && trustScore > 90"
+      ],
+      "unmask_role_override": "chief_medical_officer"
+    },
+    {
+      "field": "medications",
+      "conditions": [
+        "role == 'healthcare_provider'",
+        "role == 'pharmacist'",
+        "role == 'nurse' && medication_administration == true"
+      ]
+    },
+    {
+      "field": "insurance.policyNumber",
+      "conditions": [
+        "role == 'billing'",
+        "role == 'insurance_coordinator'",
+        "role == 'admin' && department == 'Finance'"
+      ]
+    },
+    {
+      "field": "contact.address",
+      "conditions": [
+        "role == 'admin'",
+        "role == 'emergency_services' && emergency == true",
+        "role == 'shipping' && prescription_delivery == true"
+      ]
+    },
+    {
+      "field": "emergencyContact",
+      "conditions": [
+        "emergency == true",
+        "role == 'healthcare_provider'",
+        "role == 'nurse' && shift == 'active'"
+      ]
+    }
+  ],
+  "audit_settings": {
+    "log_all_access": true,
+    "log_unmask_events": true,
+    "retention_days": 2555,
+    "alert_on_suspicious": true
+  },
+  "compliance_metadata": {
+    "standards": ["HIPAA", "HITECH", "42 CFR Part 2"],
+    "last_review": "2024-01-01",
+    "next_review": "2024-07-01",
+    "data_retention": {
+      "medical_records": "7 years",
+      "billing_records": "7 years",
+      "audit_logs": "7 years"
+    }
+  }
+}

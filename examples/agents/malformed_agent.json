@@ -1,8 +1,56 @@
 {
-    "name": "Bob",
-    "trustScore": "eighty",
-    "role": "admin",
-    "context": {
-        "department": "IT"
+  "malformationType": "invalid_data_types",
+  "description": "Agent with wrong data types and invalid values",
+  "role": 123,
+  "trustScore": "ninety-five",
+  "userId": true,
+  "username": ["array", "instead", "of", "string"],
+  "department": {
+    "unexpected": "object",
+    "instead": "of string"
+  },
+  "permissions": "should be object not string",
+  "authentication": {
+    "mfaEnabled": "yes",
+    "lastLogin": "yesterday",
+    "sessionId": 12345,
+    "loginLocation": ["192.168.1.1", "192.168.1.2"]
+  },
+  "invalidFields": {
+    "trustScore": -50,
+    "anotherTrustScore": 150,
+    "infinityScore": "Infinity",
+    "nanScore": "NaN",
+    "booleanScore": true
+  },
+  "securityIssues": {
+    "sqlInjection": "admin' OR '1'='1",
+    "xssAttempt": "<script>alert('XSS')</script>",
+    "commandInjection": "; rm -rf /",
+    "pathTraversal": "../../etc/passwd"
+  },
+  "oversizedData": {
+    "comment": "This field will be populated with 11KB of data to exceed limits"
+  },
+  "deeplyNested": {
+    "level1": {
+      "level2": {
+        "level3": {
+          "comment": "This continues for 101+ levels to test depth limits"
+        }
+      }
     }
-} 
+  },
+  "malformedScenarios": [
+    "Numeric role instead of string",
+    "String trustScore instead of number",
+    "Array username instead of string",
+    "Object department instead of string",
+    "String permissions instead of object",
+    "Invalid date formats",
+    "Negative and out-of-range trustScores",
+    "SQL injection in fields",
+    "XSS attempts in fields",
+    "Oversized fields beyond limits"
+  ]
+}

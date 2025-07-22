@@ -1,0 +1,209 @@
+{
+  "recordId": "REC-2024-78432",
+  "recordType": "customer_profile",
+  "lastModified": "2024-01-25T16:45:00Z",
+  "dataClassification": "PII-HIGH",
+  "customer": {
+    "customerId": "CUST-2024-78432",
+    "accountStatus": "active",
+    "accountTier": "premium",
+    "customerSince": "2019-06-15"
+  },
+  "personalInformation": {
+    "fullName": "Jennifer Marie Martinez",
+    "firstName": "Jennifer",
+    "middleName": "Marie",
+    "lastName": "Martinez",
+    "preferredName": "Jen",
+    "dateOfBirth": "1985-03-14",
+    "placeOfBirth": "Chicago, IL",
+    "ssn": "523-67-4821",
+    "driversLicense": {
+      "number": "D4521789",
+      "state": "IL",
+      "expirationDate": "2026-03-14"
+    },
+    "passport": {
+      "number": "584739201",
+      "country": "USA",
+      "expirationDate": "2029-08-22"
+    }
+  },
+  "contactInformation": {
+    "primaryEmail": "jennifer.martinez@email.com",
+    "workEmail": "j.martinez@techcorp.com",
+    "phoneNumbers": {
+      "home": "+1-555-234-5678",
+      "mobile": "+1-555-987-6543",
+      "work": "+1-555-234-1000 ext 4521"
+    },
+    "currentAddress": {
+      "street1": "742 Evergreen Terrace",
+      "street2": "Apt 3B",
+      "city": "Springfield",
+      "state": "IL",
+      "postalCode": "62701",
+      "country": "USA",
+      "county": "Sangamon",
+      "residenceSince": "2021-09-01"
+    },
+    "previousAddresses": [
+      {
+        "street1": "123 Oak Street",
+        "city": "Chicago",
+        "state": "IL",
+        "postalCode": "60601",
+        "residenceFrom": "2019-06-15",
+        "residenceTo": "2021-08-31"
+      }
+    ]
+  },
+  "employmentInformation": {
+    "currentEmployer": {
+      "companyName": "TechCorp Solutions Inc.",
+      "employeeId": "EMP-0012487",
+      "position": "Senior Software Engineer",
+      "department": "Platform Engineering",
+      "startDate": "2019-06-15",
+      "employmentType": "full-time",
+      "annualSalary": 145000,
+      "stockOptions": 5000,
+      "manager": {
+        "name": "Robert Chen",
+        "email": "r.chen@techcorp.com"
+      }
+    },
+    "previousEmployers": [
+      {
+        "companyName": "StartupXYZ",
+        "position": "Software Engineer",
+        "duration": "2017-2019",
+        "reasonForLeaving": "Career advancement"
+      }
+    ]
+  },
+  "financialProfile": {
+    "bankAccounts": [
+      {
+        "bankName": "First National Bank",
+        "accountType": "checking",
+        "accountNumber": "****5678",
+        "routingNumber": "021000021",
+        "accountStatus": "active"
+      },
+      {
+        "bankName": "First National Bank",
+        "accountType": "savings",
+        "accountNumber": "****9012",
+        "routingNumber": "021000021",
+        "balance": 45000
+      }
+    ],
+    "creditCards": [
+      {
+        "issuer": "Chase",
+        "lastFourDigits": "4532",
+        "creditLimit": 25000,
+        "currentBalance": 2340
+      }
+    ],
+    "investments": {
+      "totalValue": 125000,
+      "401kBalance": 85000,
+      "brokerageAccount": "Charles Schwab"
+    },
+    "creditScore": 742,
+    "annualIncome": 145000,
+    "netWorth": 215000
+  },
+  "healthInformation": {
+    "insuranceProvider": "BlueCross BlueShield",
+    "policyNumber": "BCB-2024-789456",
+    "groupNumber": "GRP-TECH-001",
+    "primaryCarePhysician": {
+      "name": "Dr. Sarah Johnson",
+      "practice": "Springfield Medical Group",
+      "phone": "+1-555-med-1234"
+    },
+    "emergencyContacts": [
+      {
+        "name": "Michael Martinez",
+        "relationship": "spouse",
+        "phone": "+1-555-345-6789",
+        "isPrimaryContact": true
+      },
+      {
+        "name": "Maria Rodriguez",
+        "relationship": "mother",
+        "phone": "+1-555-456-7890",
+        "isPrimaryContact": false
+      }
+    ],
+    "bloodType": "O+",
+    "knownAllergies": ["Penicillin", "Tree nuts", "Shellfish"],
+    "currentMedications": [
+      {
+        "name": "Lisinopril",
+        "dosage": "10mg",
+        "frequency": "once daily",
+        "prescribedBy": "Dr. Sarah Johnson",
+        "startDate": "2023-01-15"
+      }
+    ]
+  },
+  "digitalIdentity": {
+    "userAccounts": [
+      {
+        "platform": "company_portal",
+        "username": "jmartinez",
+        "accountCreated": "2019-06-15",
+        "lastLogin": "2024-01-25T14:30:00Z"
+      }
+    ],
+    "deviceInformation": [
+      {
+        "deviceType": "laptop",
+        "deviceId": "LAPTOP-JM-2023",
+        "operatingSystem": "macOS 14.2",
+        "lastSeen": "2024-01-25T16:00:00Z"
+      },
+      {
+        "deviceType": "mobile",
+        "deviceId": "IPHONE-JM-2023",
+        "operatingSystem": "iOS 17.2",
+        "lastSeen": "2024-01-25T16:30:00Z"
+      }
+    ],
+    "biometricData": {
+      "fingerprintHash": "REDACTED-HASH-VALUE",
+      "faceIdEnabled": true,
+      "lastUpdated": "2023-12-01"
+    }
+  },
+  "consentAndCompliance": {
+    "dataProcessingConsent": {
+      "given": true,
+      "timestamp": "2024-01-15T10:30:00Z",
+      "version": "2.1",
+      "withdrawable": true
+    },
+    "marketingPreferences": {
+      "emailMarketing": false,
+      "smsMarketing": false,
+      "pushNotifications": true,
+      "dataSharing": false
+    },
+    "gdprRights": {
+      "dataPortabilityRequested": false,
+      "rightToErasureRequested": false,
+      "dataAccessRequested": true,
+      "lastAccessRequest": "2023-11-15"
+    }
+  },
+  "riskAssessment": {
+    "riskScore": 0.15,
+    "riskFactors": [],
+    "lastAssessment": "2024-01-20",
+    "fraudAlerts": []
+  }
+}

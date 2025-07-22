@@ -17,28 +17,45 @@ app = typer.Typer()
 console = Console()
 
 def load_agent_context(agent_path: Path) -> dict:
-    """Load agent context from JSON file."""
+    """Load agent context from JSON file with comprehensive security validation."""
     try:
-        context = json.loads(agent_path.read_text())
+        # Import security validators
+        from ..utils.security_validators import (
+            validate_agent_context, 
+            validate_content_size,
+            validate_json_depth,
+            SecurityValidationError
+        )
         
-        # Validate required fields
-        if "role" not in context:
-            raise ValueError("Agent context must contain 'role' field")
-        if "trustScore" not in context:
-            raise ValueError("Agent context must contain 'trustScore' field")
-            
-        # Validate trustScore is numeric
+        # Read and validate size
+        content = agent_path.read_text()
+        validate_content_size(content)
+        
+        if not content.strip():
+            raise ValueError("Agent file is empty")
+        
+        # Parse JSON
         try:
-            if context["trustScore"] is not None:
-                float(context["trustScore"])
-        except (TypeError, ValueError):
-            raise ValueError(f"trustScore must be numeric, got {type(context['trustScore'])}")
+            context = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in agent file: {str(e)}")
+        
+        # Validate JSON depth
+        validate_json_depth(context)
+        
+        # Comprehensive security validation
+        try:
+            validated_context = validate_agent_context(context, source="agent")
+            return validated_context
+        except SecurityValidationError as e:
+            raise ValueError(str(e))
             
-        return context
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in agent file: {str(e)}")
+    except ValueError:
+        # Re-raise ValueError as-is to preserve specific validation messages
+        raise
     except Exception as e:
-        raise ValueError(f"Failed to load agent file: {str(e)}")
+        # For unexpected errors, provide a generic message
+        raise ValueError("Failed to load agent file")
 
 def get_context_summary(context: Dict[str, Any]) -> Dict[str, Any]:
     """Extract key fields for context summary."""
@@ -226,7 +243,7 @@ def simulate(
             console.print("\n[bold yellow]Warnings[/bold yellow]")
             warning_table = Table(show_header=False, box=None)
             for warning in result.skipped_conditions:
-                warning_table.add_row(Text("⚠", style="yellow"), Text(warning, style="yellow"))
+                warning_table.add_row(Text("WARNING", style="yellow"), Text(warning, style="yellow"))
             console.print(warning_table)
         
         # Display masking analysis

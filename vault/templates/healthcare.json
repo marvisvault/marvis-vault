@@ -1,9 +1,171 @@
 {
-  "mask": ["medicalHistory", "diagnosis", "insuranceID"],
-  "unmask_roles": ["admin", "doctor", "nurse"],
-  "conditions": [
-    "trustScore > 90 && role != 'auditor'",
-    "trustScore > 85 && role == 'doctor'",
-    "trustScore > 80 && role == 'nurse'"
-  ]
-} 
+  "name": "HIPAA-Compliant Healthcare Data Protection",
+  "version": "3.0",
+  "description": "Comprehensive healthcare data protection policy compliant with HIPAA Privacy and Security Rules",
+  "template_id": "healthcare-hipaa-v3",
+  "compliance_standards": ["HIPAA", "HITECH", "42 CFR Part 2"],
+  "fields": [
+    {
+      "field": "patientInformation.demographics.ssn",
+      "conditions": [
+        "role == 'admin' && purpose == 'billing'",
+        "role == 'billing_specialist' && trustScore > 85",
+        "role == 'compliance_officer' && audit_mode == true"
+      ],
+      "unmask_role_override": "privacy_officer",
+      "audit_required": true
+    },
+    {
+      "field": "patientInformation.demographics.dateOfBirth",
+      "conditions": [
+        "role IN ['doctor', 'nurse', 'medical_assistant']",
+        "role == 'pharmacist' && purpose == 'age_verification'",
+        "role == 'researcher' && deidentified == true"
+      ]
+    },
+    {
+      "field": "patientInformation.medicalRecordNumber",
+      "conditions": [
+        "role IN ['doctor', 'nurse', 'medical_records']",
+        "role == 'admin' && trustScore > 80",
+        "emergency == true && emergency_override_approved == true"
+      ]
+    },
+    {
+      "field": "medicalHistory",
+      "conditions": [
+        "role == 'doctor' && patient_assigned == true",
+        "role == 'specialist' && referral_active == true",
+        "role == 'nurse' && shift_active == true && department_match == true",
+        "role == 'emergency_physician' && emergency == true"
+      ],
+      "unmask_role_override": "chief_medical_officer"
+    },
+    {
+      "field": "currentMedications",
+      "conditions": [
+        "role IN ['doctor', 'nurse', 'pharmacist']",
+        "role == 'medical_assistant' && medication_administration == true",
+        "role == 'emergency_responder' && emergency == true"
+      ]
+    },
+    {
+      "field": "laboratoryResults",
+      "conditions": [
+        "role == 'doctor' && patient_assigned == true",
+        "role == 'lab_technician' && lab_access == true",
+        "role == 'specialist' && referral_includes_labs == true",
+        "role == 'nurse' && trustScore > 75"
+      ]
+    },
+    {
+      "field": "insuranceInformation.policyNumber",
+      "conditions": [
+        "role == 'billing_specialist'",
+        "role == 'insurance_coordinator'",
+        "role == 'admin' && purpose == 'claim_processing'"
+      ]
+    },
+    {
+      "field": "allergiesAndAdverseReactions",
+      "conditions": [
+        "role IN ['doctor', 'nurse', 'pharmacist', 'anesthesiologist']",
+        "role == 'emergency_responder'",
+        "role == 'medical_assistant' && patient_care == true"
+      ],
+      "critical_field": true
+    },
+    {
+      "field": "patientInformation.contactInformation.address",
+      "conditions": [
+        "role == 'admin' && purpose IN ['billing', 'appointment_scheduling']",
+        "role == 'emergency_services' && emergency == true",
+        "role == 'home_health' && service_authorized == true"
+      ]
+    },
+    {
+      "field": "patientInformation.contactInformation.emergencyContact",
+      "conditions": [
+        "emergency == true",
+        "role IN ['doctor', 'nurse'] && patient_assigned == true",
+        "role == 'social_worker' && case_assigned == true"
+      ]
+    },
+    {
+      "field": "assessmentAndPlan",
+      "conditions": [
+        "role == 'doctor' && patient_assigned == true",
+        "role == 'nurse_practitioner' && scope_of_practice == true",
+        "role == 'physician_assistant' && supervising_physician_approved == true",
+        "role == 'care_coordinator' && care_team_member == true"
+      ]
+    },
+    {
+      "field": "vitalSigns",
+      "conditions": [
+        "role IN ['doctor', 'nurse', 'medical_assistant']",
+        "role == 'paramedic' && patient_transport == true",
+        "role == 'clinical_researcher' && study_participant == true"
+      ]
+    },
+    {
+      "field": "providerInformation.deaNumber",
+      "conditions": [
+        "role == 'pharmacy' && controlled_substance_prescription == true",
+        "role == 'dea_auditor' && audit_in_progress == true"
+      ],
+      "never_unmask": true
+    }
+  ],
+  "special_rules": {
+    "minimum_necessary": {
+      "description": "Access limited to minimum necessary for job function",
+      "applies_to": "all_fields",
+      "exceptions": ["treatment", "payment", "healthcare_operations"]
+    },
+    "break_the_glass": {
+      "description": "Emergency override for life-threatening situations",
+      "requires": ["emergency == true", "override_justification", "dual_approval"],
+      "audit": "immediate_notification",
+      "review_within": "24_hours"
+    },
+    "minor_records": {
+      "description": "Special protections for patients under 18",
+      "conditions": ["patient_age < 18"],
+      "additional_restrictions": ["parental_consent", "state_specific_rules"]
+    },
+    "mental_health": {
+      "description": "Enhanced protections for mental health records",
+      "field_patterns": ["psych*", "mental*", "behavioral*"],
+      "requires": ["specialized_authorization", "42_cfr_part_2_compliance"]
+    },
+    "substance_abuse": {
+      "description": "Federal protections for substance abuse records",
+      "requires": ["patient_consent", "specific_authorization"],
+      "sharing_restrictions": "severe"
+    }
+  },
+  "audit_configuration": {
+    "log_all_access": true,
+    "log_all_denials": true,
+    "enhanced_logging_for": ["ssn", "mentalHealth", "substanceAbuse"],
+    "retention_period": "7_years",
+    "real_time_alerts": {
+      "unusual_access_patterns": true,
+      "after_hours_access": true,
+      "high_volume_access": true,
+      "vip_patient_access": true
+    }
+  },
+  "data_retention": {
+    "medical_records": "7_years_from_last_treatment",
+    "minor_records": "7_years_after_age_18",
+    "deceased_patients": "7_years_from_death",
+    "audit_logs": "7_years"
+  },
+  "geographic_restrictions": {
+    "data_residency": "USA_only",
+    "cross_border_transfer": "prohibited",
+    "state_specific_rules": true
+  }
+}

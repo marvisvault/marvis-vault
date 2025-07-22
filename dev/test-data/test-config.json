@@ -1,0 +1,140 @@
+{
+  "test_suites": {
+    "basic_functionality": {
+      "description": "Core functionality tests for the vault system",
+      "tests": [
+        {
+          "name": "Basic Redaction",
+          "agent": "agents/production-agents.json#agents.analyst_medium_trust",
+          "content": "content/healthcare-records.json",
+          "policy": "policies/healthcare-hipaa.json",
+          "expected": {
+            "ssn": "[REDACTED]",
+            "medicalRecordNumber": "[REDACTED]",
+            "dateOfBirth": "visible"
+          }
+        },
+        {
+          "name": "Admin Full Access",
+          "agent": "agents/production-agents.json#agents.admin_full_access",
+          "content": "content/financial-transactions.json",
+          "policy": "policies/financial-pci.json",
+          "expected": {
+            "all_fields": "visible"
+          }
+        },
+        {
+          "name": "Missing TrustScore Fallback",
+          "agent": "agents/edge-case-agents.json#edge_cases.missing_trustScore",
+          "content": "content/employee-records.json",
+          "policy": "policies/hr-employee-data.json",
+          "expected": {
+            "sensitive_fields": "[REDACTED]",
+            "behavior": "fail_safe"
+          }
+        }
+      ]
+    },
+    "security_validation": {
+      "description": "Security attack prevention tests",
+      "tests": [
+        {
+          "name": "SQL Injection Prevention",
+          "agent": "agents/malicious-agents.json#security_test_cases.sql_injection_attempt",
+          "content": "content/healthcare-records.json",
+          "policy": "policies/healthcare-hipaa.json",
+          "expected": {
+            "result": "rejected",
+            "error": "injection_detected"
+          }
+        },
+        {
+          "name": "XSS Prevention",
+          "agent": "agents/malicious-agents.json#security_test_cases.xss_attempt",
+          "content": "content/financial-transactions.json",
+          "policy": "policies/financial-pci.json",
+          "expected": {
+            "result": "rejected",
+            "error": "xss_detected"
+          }
+        },
+        {
+          "name": "DoS Large Payload",
+          "agent": "agents/malicious-agents.json#security_test_cases.dos_large_payload",
+          "content": "content/employee-records.json",
+          "policy": "policies/hr-employee-data.json",
+          "expected": {
+            "result": "rejected",
+            "error": "payload_too_large"
+          }
+        }
+      ]
+    },
+    "edge_cases": {
+      "description": "Boundary and edge case tests",
+      "tests": [
+        {
+          "name": "Zero TrustScore",
+          "agent": "agents/edge-case-agents.json#edge_cases.zero_trustScore",
+          "content": "content/healthcare-records.json",
+          "policy": "policies/healthcare-hipaa.json",
+          "expected": {
+            "all_sensitive": "[REDACTED]"
+          }
+        },
+        {
+          "name": "Max TrustScore",
+          "agent": "agents/edge-case-agents.json#edge_cases.max_trustScore",
+          "content": "content/financial-transactions.json",
+          "policy": "policies/financial-pci.json",
+          "expected": {
+            "most_fields": "visible"
+          }
+        },
+        {
+          "name": "Unicode Role",
+          "agent": "agents/edge-case-agents.json#edge_cases.unicode_role_agent",
+          "content": "content/employee-records.json",
+          "policy": "policies/hr-employee-data.json",
+          "expected": {
+            "normalization": "applied",
+            "access": "based_on_normalized_role"
+          }
+        }
+      ]
+    },
+    "performance": {
+      "description": "Performance and scalability tests",
+      "targets": {
+        "basic_redaction": "< 10ms",
+        "complex_policy": "< 50ms",
+        "large_document": "< 100ms",
+        "concurrent_requests": "> 1000 req/s"
+      }
+    }
+  },
+  "environments": {
+    "development": {
+      "log_level": "DEBUG",
+      "strict_validation": true,
+      "performance_monitoring": true
+    },
+    "staging": {
+      "log_level": "INFO",
+      "strict_validation": true,
+      "performance_monitoring": true
+    },
+    "production": {
+      "log_level": "WARNING",
+      "strict_validation": true,
+      "performance_monitoring": true,
+      "alert_on_security_events": true
+    }
+  },
+  "test_data_paths": {
+    "agents": "dev/test-data/agents/",
+    "content": "dev/test-data/content/",
+    "policies": "dev/test-data/policies/",
+    "attacks": "dev/test-data/attacks/"
+  }
+}

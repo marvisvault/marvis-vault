@@ -11,110 +11,180 @@ Redact, simulate, and audit sensitive data — with policies, trustScore, and ro
 
 Built for teams using LLMs, agents, and AI-native workflows.
 
-[ Read the Docs](./docs/01_index.md) &nbsp;&nbsp;&nbsp;&nbsp;[🌐 marvisvault.com](https://marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[🚀 Apply for Vault Plus](https://tally.so/r/3XNBgP)
+[ Read the Docs](./docs/01_index.md) &nbsp;&nbsp;&nbsp;&nbsp;[marvisvault.com](https://marvisvault.com) &nbsp;&nbsp;&nbsp;&nbsp;[Apply for Vault Plus](https://tally.so/r/3XNBgP)
 
 ---
 
 ## Core Features
 
-- 🔒 **Redaction Engine** — Mask sensitive fields using role + trustScore
-- 🧠 **Policy Language** — Declarative conditions with `&&`, `||`, and field logic
-- 🧪 **Simulation CLI** — See what would be masked before sending to the model
-- 📜 **Audit Logging** — Structured JSONL logs for every mask/unmask decision
-- 🧰 **Python SDK** — Use Vault in agents, pipelines, or AI assistants
-- 💼 **Policy Templates** — GDPR, PII, finance, healthcare — ready to drop in
+- **Redaction Engine** — Mask sensitive fields using role + trustScore
+- **Policy Language** — Declarative conditions with `&&`, `||`, and field logic
+- **Simulation CLI** — See what would be masked before sending to the model
+- **Audit Logging** — Structured JSONL logs for every mask/unmask decision
+- **Python SDK** — Use Vault in agents, pipelines, or AI assistants
+- **Policy Templates** — GDPR, PII, finance, healthcare — ready to drop in
 
 ---
 
-## 📦 Install
+## Install
 
 ```bash
 git clone https://github.com/abbybiswas/marvis-vault-oss.git
 cd marvis-vault-oss
 pip install -e .
 ```
-> Note: Please go to [Local Setup Guide](SETUP.md) if you have issues to make sure your enviroment is setup properly before running `pip install -e .` 
+> See [Local Setup Guide](SETUP.md) for detailed environment setup instructions
 
-## 🖥️ CLI Usage
+## Quick Start
 
-```bash
-vault simulate --agent examples/agent.json --policy policies/gdpr-lite.json
-```
-## 📤 Output Example
-
-```txt
-🔒 Fields to redact: email, phone  
-🧠 Role: auditor | trustScore: 70  
-❌ Condition failed: trustScore > 80  
-```
-
----
-
-## 💻 Other Commands
+### CLI Usage
 
 ```bash
-vault redact --input input.txt --policy policies/finance.json
-vault audit --log vault.log --format csv
-vault lint --policy policies/healthcare.yaml
+# Simulate policy evaluation
+vault simulate --agent examples/agent.json --policy policies/pii-basic.json
+
+# Redact sensitive data
+vault redact --agent examples/agent.json --data examples/data-pii.json --policy policies/gdpr-lite.json
+
+# View audit logs
+vault audit --log logs/audit.log --format table
+```
+
+### Python SDK
+
+```python
+from vault.sdk import redact
+from vault.engine.policy_parser import load_policy
+
+# Load policy and agent context
+policy = load_policy("policies/healthcare.json")
+agent = {"role": "analyst", "trustScore": 75}
+
+# Redact sensitive data
+result = redact(
+    content='{"name": "John Doe", "ssn": "123-45-6789"}',
+    policy=policy,
+    agent_context=agent
+)
+
+print(result.content)  # {"name": "John Doe", "ssn": "[REDACTED]"}
 ```
 
 ---
 
-## 🧱 OSS vs Vault Plus
+## Project Structure
 
-| Feature                          | OSS ✅ | Vault Plus 🔒 |
-|----------------------------------|--------|----------------|
-| Policy engine (mask, simulate)   | ✅     | ✅  
-| Full CLI + Python SDK            | ✅     | ✅  
-| Hosted API (FastAPI)             | ❌     | ✅  
-| Secure role-based unmasking      | ❌     | ✅  
-| Interactive TUI playground       | ❌     | ✅  
-| Telemetry + usage analytics      | ❌     | ✅  
-| Policy Marketplace (Q3 2024)     | ❌     | ✅  
-
-📬 **Vault Plus is free during early access** — [Apply here](https://tally.so/r/3XNBgP)
-
----
-
-## 📚 Docs
-
-- [Quickstart](docs/00_quickstart.md)
-- [CLI Interface](docs/02_cli_interface_.md)
-- [Tutorial Start](docs/01_index.md)
+```
+marvis-vault-oss/
+├── vault/                 # Core library code
+│   ├── cli/              # CLI commands
+│   ├── engine/           # Policy engine
+│   ├── sdk/              # Python SDK
+│   └── utils/            # Security utilities
+├── examples/             # Simple examples to get started
+├── policies/             # Pre-built policy templates
+├── tests/                # Test suite
+├── dev/                  # Development resources
+│   ├── test-data/        # Comprehensive test data
+│   ├── scripts/          # Testing & demo scripts
+│   └── instructions/     # Development guides
+└── docs/                 # Documentation
+```
 
 ---
 
-## 🧠 Built For
+## Policy Templates
 
-- AI startups building agent copilots  
-- Compliance-conscious LLM apps  
-- Enterprises evaluating secure AI stacks  
-- Open-source hackers securing pipelines  
+Ready-to-use templates in `policies/`:
 
----
-
-## 🔬 Tech Stack
-
-- Language: Python 3.10+  
-- CLI: [Typer](https://typer.tiangolo.com/)  
-- Policy Logic: Pydantic + safe condition parser (no `eval`)  
-- Output: Rich terminal formatting, structured JSONL logs  
-- Tests: `pytest`, `mypy`, `black`, `isort`  
+- **pii-basic.json** — Basic PII protection (name, email, SSN)
+- **healthcare.json** — HIPAA-compliant medical records
+- **finance-trust.json** — Financial data with trust-based access
+- **gdpr-lite.json** — GDPR-inspired data protection
 
 ---
 
-## 🧩 Contributing
-Pull requests welcome!
-See [CONTRIBUTING.md](CONTRIBUTING.md) and open issues — or suggest your own.
+## Advanced Testing
 
-By contributing, you agree your code may be used in both open-source and commercial offerings under the repository's license.
+For production-grade testing:
 
+```bash
+# Run comprehensive API tests
+python dev/scripts/api_test_runner.py
+
+# Test security hardening
+python -m pytest tests/security/ -v
+
+# Performance benchmarks
+python dev/scripts/benchmark.py
+```
+
+See `dev/test-data/` for:
+- Production agent profiles
+- Industry-specific test data (healthcare, financial, HR)
+- Security attack vectors
+- Complex nested structures
 
 ---
 
-## 🧠 About
+## OSS vs Vault Plus
 
-**Marvis Vault** is built by [@abhigyanbiswas](https://www.linkedin.com/in/abhigyan-biswas/) to bring programmable trust to the age of agentic AI.
+| Feature                          | OSS | Vault Plus |
+|----------------------------------|-----|------------|
+| Policy engine (mask, simulate)   | [x] | [x]        |
+| Full CLI + Python SDK            | [x] | [x]        |
+| Hosted API (FastAPI)             | [ ] | [x]        |
+| Secure role-based unmasking      | [ ] | [x]        |
+| Interactive TUI playground       | [ ] | [x]        |
+| Telemetry + usage analytics      | [ ] | [x]        |
+| Policy Marketplace (Q3 2024)     | [ ] | [x]        |
 
-Built in public. OSS first.  
-Try it → [marvisvault.com](https://marvisvault.com)
+**Vault Plus is free during early access** — [Apply here](https://tally.so/r/3XNBgP)
+
+---
+
+## Documentation
+
+- [Quickstart Guide](docs/00_quickstart.md)
+- [CLI Reference](docs/02_cli_interface_.md)
+- [Policy Definition](docs/03_policy_definition_.md)
+- [API Documentation](docs/01_index.md)
+
+---
+
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## Security
+
+This project includes security hardening against:
+- SQL/NoSQL injection
+- XSS attacks
+- Command injection
+- Path traversal
+- DoS attacks
+- Type confusion
+- Special value attacks (Infinity, NaN)
+
+See [SECURITY.md](SECURITY.md) for details.
+
+---
+
+## License
+
+MIT License - see [LICENSE.md](LICENSE.md)
+
+---
+
+## Support
+
+- GitHub Issues: [Report bugs or request features](https://github.com/abbybiswas/marvis-vault-oss/issues)
+- Documentation: [docs/](./docs/)
+- Community: Coming soon
+
+---
+
+Built with love by the Marvis team

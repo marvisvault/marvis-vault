@@ -1,0 +1,87 @@
+{
+  "dos_attacks": {
+    "large_payload_1mb": {
+      "description": "Payload exactly at 1MB limit",
+      "size_bytes": 1048576,
+      "generate": "Create string of 'A' characters repeated to reach exactly 1MB"
+    },
+    "large_payload_over_1mb": {
+      "description": "Payload exceeding 1MB limit by 1 byte",
+      "size_bytes": 1048577,
+      "generate": "Create string of 'B' characters repeated to reach 1MB + 1 byte"
+    },
+    "large_field_10kb": {
+      "description": "Single field at 10KB limit",
+      "field_size_bytes": 10240,
+      "structure": {
+        "role": "user",
+        "trustScore": 50,
+        "data": "String of exactly 10240 characters"
+      }
+    },
+    "many_small_fields": {
+      "description": "10000 small fields that together exceed limits",
+      "field_count": 10000,
+      "structure": {
+        "role": "user",
+        "trustScore": 50,
+        "field_0": "value_0",
+        "field_1": "value_1",
+        "comment": "Continue pattern for 10000 fields"
+      }
+    },
+    "deeply_nested_100_levels": {
+      "description": "JSON nested exactly 100 levels deep (at limit)",
+      "depth": 100,
+      "structure": {
+        "level": 1,
+        "next": {
+          "level": 2,
+          "next": {
+            "level": 3,
+            "comment": "Continue nesting to level 100"
+          }
+        }
+      }
+    },
+    "deeply_nested_101_levels": {
+      "description": "JSON nested 101 levels deep (exceeds limit)",
+      "depth": 101,
+      "structure": {
+        "level": 1,
+        "next": {
+          "level": 2,
+          "comment": "Continue nesting to level 101"
+        }
+      }
+    },
+    "compression_bomb": {
+      "description": "Highly repetitive data that compresses well",
+      "pattern": "aaaaaaaaaa",
+      "repeat": 100000,
+      "comment": "Would compress to <1KB but expands to 1MB"
+    },
+    "unicode_expansion": {
+      "description": "Unicode that expands during normalization",
+      "samples": [
+        "[Unicode ligature ﬃ repeated 1000 times - generated at runtime]",
+        "[Unicode ligature ﬀ repeated 1000 times - generated at runtime]",
+        "[Unicode ligature ﬄ repeated 1000 times - generated at runtime]"
+      ],
+      "comment": "Ligatures that expand to multiple characters"
+    },
+    "regex_dos_patterns": {
+      "description": "Patterns that cause catastrophic backtracking",
+      "patterns": [
+        "(a+)+b",
+        "(a*)*b",
+        "(a|a)*b",
+        "(a|ab)*b"
+      ],
+      "test_strings": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaac",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaac"
+      ]
+    }
+  }
+}

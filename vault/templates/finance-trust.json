@@ -1,8 +1,181 @@
 {
-  "mask": ["bankAccount", "transactionHistory", "creditScore"],
-  "unmask_roles": ["admin", "financial_advisor"],
-  "conditions": [
-    "trustScore > 95 && role != 'auditor'",
-    "trustScore > 90 && role == 'financial_advisor'"
-  ]
-} 
+  "name": "Financial Data Protection - Trust-Based Access",
+  "version": "2.5",
+  "description": "Financial data protection with graduated access based on trust scores and roles",
+  "template_id": "finance-trust-v2.5",
+  "compliance_standards": ["PCI-DSS", "SOX", "GLBA", "GDPR"],
+  "fields": [
+    {
+      "field": "financialProfile.bankAccounts[*].accountNumber",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'admin' && trustScore > 95 && mfa_verified == true",
+        "role == 'financial_advisor' && client_consent == true && trustScore > 90",
+        "role == 'fraud_investigator' && case_active == true && trustScore > 85"
+      ],
+      "unmask_role_override": "chief_financial_officer",
+      "partial_unmask": {
+        "default_visible": 4,
+        "position": "last"
+      }
+    },
+    {
+      "field": "financialProfile.bankAccounts[*].routingNumber",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'admin' && trustScore > 90",
+        "role == 'payment_processor' && transaction_in_progress == true",
+        "role == 'financial_advisor' && trustScore > 85"
+      ]
+    },
+    {
+      "field": "financialProfile.bankAccounts[*].balance",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'financial_advisor' && client_relationship == true && trustScore > 80",
+        "role == 'loan_officer' && application_active == true && trustScore > 75",
+        "role == 'admin' && trustScore > 90"
+      ]
+    },
+    {
+      "field": "financialProfile.creditCards[*].cardNumber",
+      "conditions": [
+        "never",
+        "role == 'pci_admin' && tokenization_process == true"
+      ],
+      "unmask_role_override": "none",
+      "security_note": "Full card numbers should never be displayed per PCI-DSS"
+    },
+    {
+      "field": "financialProfile.creditCards[*].lastFourDigits",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'customer_service' && trustScore > 70",
+        "role == 'fraud_analyst' && trustScore > 75"
+      ]
+    },
+    {
+      "field": "financialProfile.creditScore",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'loan_officer' && application_submitted == true && trustScore > 80",
+        "role == 'financial_advisor' && planning_session == true && trustScore > 85",
+        "role == 'underwriter' && trustScore > 75"
+      ]
+    },
+    {
+      "field": "transactionHistory",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'fraud_analyst' && investigation_active == true && trustScore > 80",
+        "role == 'financial_advisor' && trustScore > 85 && timeframe < 90_days",
+        "role == 'auditor' && audit_approved == true && trustScore > 90"
+      ],
+      "time_based_access": {
+        "default_range": "90_days",
+        "max_range": "365_days"
+      }
+    },
+    {
+      "field": "financialProfile.investments",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'financial_advisor' && fiduciary_agreement == true && trustScore > 85",
+        "role == 'tax_preparer' && tax_season == true && trustScore > 80",
+        "role == 'wealth_manager' && trustScore > 90"
+      ]
+    },
+    {
+      "field": "financialProfile.netWorth",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'private_banker' && relationship_tier == 'premium' && trustScore > 90",
+        "role == 'estate_planner' && engagement_active == true && trustScore > 85"
+      ]
+    },
+    {
+      "field": "personalInformation.ssn",
+      "conditions": [
+        "role == 'admin' && purpose == 'identity_verification' && trustScore > 95",
+        "role == 'compliance_officer' && kyc_process == true && trustScore > 90",
+        "role == 'tax_admin' && reporting_period == true && trustScore > 85"
+      ],
+      "partial_unmask": {
+        "default_visible": 4,
+        "position": "last"
+      },
+      "audit_required": true
+    },
+    {
+      "field": "employmentInformation.annualSalary",
+      "conditions": [
+        "role == 'account_owner'",
+        "role == 'loan_officer' && income_verification == true && trustScore > 75",
+        "role == 'financial_advisor' && financial_planning == true && trustScore > 80"
+      ]
+    }
+  ],
+  "trust_score_tiers": {
+    "tier_1": {
+      "range": [0, 50],
+      "description": "Minimal access - public information only",
+      "max_fields_accessible": 5
+    },
+    "tier_2": {
+      "range": [51, 70],
+      "description": "Basic access - limited PII",
+      "max_fields_accessible": 15
+    },
+    "tier_3": {
+      "range": [71, 85],
+      "description": "Standard access - most non-sensitive data",
+      "max_fields_accessible": 50
+    },
+    "tier_4": {
+      "range": [86, 95],
+      "description": "Elevated access - sensitive data with justification",
+      "max_fields_accessible": 100
+    },
+    "tier_5": {
+      "range": [96, 100],
+      "description": "Maximum access - all data with audit trail",
+      "max_fields_accessible": "unlimited"
+    }
+  },
+  "special_rules": {
+    "high_value_accounts": {
+      "threshold": 1000000,
+      "additional_requirements": [
+        "trustScore > 90",
+        "executive_approval == true",
+        "dual_control == true"
+      ]
+    },
+    "suspicious_activity": {
+      "triggers": [
+        "access_attempts > 5 in 1_hour",
+        "accessing_multiple_unrelated_accounts",
+        "after_hours_access && !emergency"
+      ],
+      "action": "immediate_lock_and_alert"
+    },
+    "regulatory_reporting": {
+      "conditions": [
+        "role == 'regulator' && official_request == true",
+        "role == 'compliance_officer' && reporting_deadline == true"
+      ],
+      "requires_legal_review": true
+    }
+  },
+  "audit_configuration": {
+    "log_all_access": true,
+    "enhanced_logging_for": ["ssn", "accountNumber", "creditScore"],
+    "real_time_monitoring": {
+      "high_value_transactions": true,
+      "trust_score_changes": true,
+      "failed_access_attempts": true
+    },
+    "retention_period": "7_years",
+    "encrypted_storage": true
+  }
+}

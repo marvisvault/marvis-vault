@@ -1,0 +1,145 @@
+{
+  "name": "Employee Data Protection Policy",
+  "version": "2.5",
+  "description": "Comprehensive HR data protection policy for employee records",
+  "template_id": "hr-employee-v2.5",
+  "data_classification": "Confidential",
+  "fields": [
+    {
+      "field": "personalInfo.ssn",
+      "conditions": [
+        "role == 'hr_admin' && purpose IN ['tax_reporting', 'benefits_enrollment', 'background_check']",
+        "role == 'payroll' && payroll_processing == true",
+        "role == 'compliance' && audit_in_progress == true && trustScore > 90"
+      ],
+      "unmask_role_override": "chief_people_officer",
+      "partial_unmask": {
+        "default_visible": 4,
+        "position": "last"
+      }
+    },
+    {
+      "field": "personalInfo.dateOfBirth",
+      "conditions": [
+        "role == 'hr_admin'",
+        "role == 'benefits_admin'",
+        "role == 'manager' && direct_report == true",
+        "purpose == 'age_verification'"
+      ]
+    },
+    {
+      "field": "compensation.baseSalary",
+      "conditions": [
+        "role == 'employee_self'",
+        "role == 'manager' && direct_report == true && review_period == true",
+        "role == 'hr_admin' && trustScore > 80",
+        "role == 'compensation_analyst'",
+        "role == 'executive' && department_oversight == true"
+      ]
+    },
+    {
+      "field": "compensation.bonus",
+      "conditions": [
+        "role == 'employee_self'",
+        "role == 'manager' && direct_report == true",
+        "role == 'hr_admin' && purpose == 'compensation_review'",
+        "role == 'finance' && budget_planning == true"
+      ]
+    },
+    {
+      "field": "compensation.stockOptions",
+      "conditions": [
+        "role == 'employee_self'",
+        "role == 'stock_admin'",
+        "role == 'hr_admin' && seniority_level >= 'senior'"
+      ]
+    },
+    {
+      "field": "bankingInfo",
+      "conditions": [
+        "role == 'payroll' && payroll_processing == true && mfa == true",
+        "role == 'employee_self' && updating_banking == true"
+      ],
+      "unmask_role_override": "none",
+      "audit_required": true
+    },
+    {
+      "field": "performanceReviews",
+      "conditions": [
+        "role == 'employee_self'",
+        "role == 'manager' && direct_report == true",
+        "role == 'hr_admin' && purpose IN ['promotion_review', 'pip_process']",
+        "role == 'skip_level_manager' && skip_level_review == true"
+      ]
+    },
+    {
+      "field": "contact.address",
+      "conditions": [
+        "role == 'employee_self'",
+        "role == 'hr_admin'",
+        "role == 'facilities' && purpose == 'equipment_delivery'",
+        "role == 'emergency_response' && emergency == true"
+      ]
+    },
+    {
+      "field": "personalInfo.visaStatus",
+      "conditions": [
+        "role == 'hr_admin' && immigration_certified == true",
+        "role == 'immigration_specialist'",
+        "role == 'employee_self'"
+      ],
+      "sensitivity": "high"
+    },
+    {
+      "field": "contact.emergencyContact",
+      "conditions": [
+        "role == 'employee_self'",
+        "role == 'hr_admin'",
+        "role == 'manager' && emergency == true",
+        "role == 'first_responder' && incident_in_progress == true"
+      ]
+    },
+    {
+      "field": "salesMetrics",
+      "conditions": [
+        "role == 'employee_self' && department == 'Sales'",
+        "role == 'sales_manager' && team_member == true",
+        "role == 'sales_operations'",
+        "role == 'executive' && reviewing_sales == true"
+      ]
+    }
+  ],
+  "special_rules": {
+    "manager_access": {
+      "requires": ["direct_report == true OR skip_level == true"],
+      "excludes": ["personalInfo.ssn", "bankingInfo", "contact.personalEmail"]
+    },
+    "self_service": {
+      "full_access": ["employee_self == true"],
+      "excludes": ["manager_notes", "termination_details"]
+    },
+    "geographical_restrictions": {
+      "eu_employees": {
+        "additional_conditions": "gdpr_consent == true",
+        "right_to_forget": true
+      }
+    }
+  },
+  "audit_settings": {
+    "log_all_access": true,
+    "log_unmask_events": true,
+    "sensitive_field_alerts": ["ssn", "bankingInfo", "compensation"],
+    "retention_days": 2555,
+    "quarterly_access_review": true
+  },
+  "compliance_metadata": {
+    "standards": ["SOC2", "ISO27001", "CCPA", "GDPR"],
+    "last_review": "2023-10-01",
+    "next_review": "2024-04-01",
+    "data_retention": {
+      "active_employees": "indefinite",
+      "terminated_employees": "7 years",
+      "job_applicants": "2 years"
+    }
+  }
+}

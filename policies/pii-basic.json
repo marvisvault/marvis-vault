@@ -1,0 +1,8 @@
+{
+  "mask": ["name", "dob", "ssn"],
+  "unmask_roles": ["admin", "hr_manager"],
+  "conditions": [
+    "trustScore >= 85 && role == 'auditor'",
+    "trustScore > 75 && role == 'hr_admin'"
+  ]
+} 

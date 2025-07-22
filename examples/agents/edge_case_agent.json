@@ -1,9 +1,32 @@
 {
-    "name": "Alice",
-    "email": "",
-    "trustScore": null,
-    "role": "user",
-    "context": {
-        "department": "HR"
-    }
-} 
+  "edgeCaseType": "missing_critical_fields",
+  "description": "Agent with missing trustScore and empty required fields",
+  "role": "analyst",
+  "trustScore": null,
+  "userId": "",
+  "username": null,
+  "department": "Data Science",
+  "authentication": {
+    "mfaEnabled": false,
+    "lastLogin": null,
+    "sessionId": "",
+    "authMethod": "unknown"
+  },
+  "permissions": {
+    "dataAccess": [],
+    "systemAccess": null,
+    "resourceLimits": {}
+  },
+  "metadata": {
+    "accountCreated": "0000-00-00T00:00:00Z",
+    "accountStatus": "",
+    "notes": "This agent tests handling of null, empty, and missing values"
+  },
+  "edgeCaseScenarios": [
+    "Missing trustScore should trigger fallback to most restrictive access",
+    "Empty userId should fail validation",
+    "Null username should be handled gracefully",
+    "Empty arrays and objects should not cause crashes",
+    "Invalid date format should be rejected"
+  ]
+}

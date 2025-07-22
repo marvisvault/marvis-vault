@@ -1,20 +1,20 @@
-# 🛠️ Marvis Vault OSS — Local Dev Setup
+# Marvis Vault OSS — Local Dev Setup
 
 This guide will help you set up Marvis Vault locally in **developer mode** so you can run, test, and extend the CLI.
 
 ---
 
-## ⚙️ Requirements
+## Requirements
 
 - **Python 3.11.9** (recommended for compatibility)  
-  👉 https://www.python.org/downloads/release/python-3119/
+  https://www.python.org/downloads/release/python-3119/
 - **Git**
 - Optional: **GitHub Desktop** (recommended for Windows)
 - OS: Windows, macOS, or Linux
 
 ---
 
-## 🚀 Setup Instructions
+## Setup Instructions
 
 ### 1. Clone the repository
 
@@ -27,14 +27,14 @@ cd marvis-vault-oss
 
 ### 2. Create and activate a virtual environment
 
-#### 🪟 Windows (PowerShell)
+#### Windows (PowerShell)
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-#### 🐧 macOS/Linux
+#### macOS/Linux
 
 ```bash
 python3 -m venv .venv
@@ -49,12 +49,12 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-> 🛡️ If using Norton or another antivirus:  
+> If using Norton or another antivirus:  
 > You may need to whitelist the repo folder or allow `pip.exe` if installation is blocked by Data Protector or SONAR.
 
 ---
 
-## ✅ Usage
+## Usage
 
 Once installed, you can run the CLI directly:
 
@@ -80,7 +80,7 @@ vault lint ...
 
 ---
 
-## 🧪 Developer Tools
+## Developer Tools
 
 | Task           | Command                |
 |----------------|------------------------|
@@ -91,7 +91,7 @@ vault lint ...
 
 ---
 
-## 🔁 Updating Dependencies
+## Updating Dependencies
 
 ```bash
 pip install -r requirements.txt --upgrade
@@ -99,9 +99,9 @@ pip install -r requirements.txt --upgrade
 
 ---
 
-## 💡 Troubleshooting
+## Troubleshooting
 
-### ❌ `pip install -e` fails with `.egg-info` error
+### `pip install -e` fails with `.egg-info` error
 
 This is usually caused by antivirus interference (e.g., Norton Data Protector).
 
@@ -112,7 +112,7 @@ This is usually caused by antivirus interference (e.g., Norton Data Protector).
 
 ---
 
-### ❌ `python` not recognized
+### `python` not recognized
 
 **Fix:**
 
@@ -121,7 +121,7 @@ This is usually caused by antivirus interference (e.g., Norton Data Protector).
 
 ---
 
-## 🧩 Next Steps
+## Next Steps
 
 - [ ] Read [Quick Start](./docs/00_quickstart.md) to get started
 - [ ] Use the `vault` CLI
@@ -132,4 +132,4 @@ This is usually caused by antivirus interference (e.g., Norton Data Protector).
 
 ---
 
-Built with ♥ by the Marvis Labs team
+Built with love by the Marvis Labs team
